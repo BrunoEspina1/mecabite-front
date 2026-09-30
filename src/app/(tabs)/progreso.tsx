@@ -37,7 +37,7 @@ export default function ProgresoScreen() {
             </View>
           );
         })}
-        <Button title="Ajustes de conexión" variant="text" onPress={() => router.push('/ajustes')} />
+        <Button title="Ajustes de conexión" variant="text" onPress={() => router.push('/conexion')} />
         <AppVersion />
       </ScrollView>
     </SafeAreaView>

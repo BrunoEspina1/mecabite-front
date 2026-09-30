@@ -27,6 +27,8 @@ export type Sena = {
   localizacion: string;
   movimiento?: string;
   icon: SymbolName;
+  /** Hand drawing (PNG asset): the letter's handshape, or one/two plain hands for words. `icon` is the fallback. */
+  image?: number;
 };
 
 const HAND_STATIC: SymbolName = { ios: 'hand.raised', android: 'back_hand', web: 'back_hand' };
@@ -52,6 +54,7 @@ export const SENAS: Sena[] = [
     orientacion: 'Palma hacia el frente.',
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
+    image: require('../../assets/images/signs/a.png'),
   },
   {
     id: 'b',
@@ -63,6 +66,7 @@ export const SENAS: Sena[] = [
     orientacion: 'Palma hacia el frente.',
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
+    image: require('../../assets/images/signs/b.png'),
   },
   {
     id: 'c',
@@ -74,6 +78,7 @@ export const SENAS: Sena[] = [
     orientacion: 'Palma hacia un lado.',
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
+    image: require('../../assets/images/signs/c.png'),
   },
   {
     id: 'l',
@@ -85,6 +90,7 @@ export const SENAS: Sena[] = [
     orientacion: 'Palma hacia el frente.',
     localizacion: 'A la altura del hombro.',
     icon: HAND_POINT,
+    image: require('../../assets/images/signs/l.png'),
   },
   {
     id: 'y',
@@ -96,6 +102,7 @@ export const SENAS: Sena[] = [
     orientacion: 'Palma hacia el frente.',
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
+    image: require('../../assets/images/signs/y.png'),
   },
   // Nivel 2
   {
@@ -109,6 +116,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     movimiento: 'Curva hacia abajo y hacia adentro.',
     icon: HAND_WAVE,
+    image: require('../../assets/images/signs/j.png'),
   },
   {
     id: 'enie',
@@ -121,6 +129,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Frente al pecho.',
     movimiento: 'Oscilación lateral de la muñeca.',
     icon: HAND_WAVE,
+    image: require('../../assets/images/signs/enie.png'),
   },
   {
     id: 'q',
@@ -133,6 +142,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Frente al pecho.',
     movimiento: 'Giro de muñeca hacia abajo.',
     icon: HAND_WAVE,
+    image: require('../../assets/images/signs/q.png'),
   },
   {
     id: 'x',
@@ -145,6 +155,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     movimiento: 'Trazo diagonal corto.',
     icon: HAND_WAVE,
+    image: require('../../assets/images/signs/x.png'),
   },
   {
     id: 'z',
@@ -157,6 +168,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     movimiento: 'Trazo en zigzag.',
     icon: HAND_POINT,
+    image: require('../../assets/images/signs/z.png'),
   },
   // Nivel 3
   {
@@ -170,6 +182,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Junto a la frente.',
     movimiento: 'Hacia afuera, alejándose de la cabeza.',
     icon: HAND_WAVE,
+    image: require('../../assets/images/signs/hand-one.png'),
   },
   {
     id: 'gracias',
@@ -182,6 +195,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Barbilla.',
     movimiento: 'Hacia adelante y abajo.',
     icon: HAND_SIGN,
+    image: require('../../assets/images/signs/hand-two.png'),
   },
   {
     id: 'por_favor',
@@ -194,6 +208,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Pecho.',
     movimiento: 'Circular.',
     icon: HAND_SIGN,
+    image: require('../../assets/images/signs/hand-two.png'),
   },
   {
     id: 'ayuda',
@@ -206,6 +221,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Frente al pecho.',
     movimiento: 'Ambas manos suben.',
     icon: HAND_SIGN,
+    image: require('../../assets/images/signs/hand-two.png'),
   },
   {
     id: 'mama',
@@ -218,6 +234,7 @@ export const SENAS: Sena[] = [
     localizacion: 'Barbilla.',
     movimiento: 'Dos toques cortos.',
     icon: HAND_SIGN,
+    image: require('../../assets/images/signs/hand-one.png'),
   },
 ];
 

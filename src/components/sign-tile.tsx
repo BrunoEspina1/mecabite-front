@@ -1,30 +1,26 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Icon } from '@/components/icon';
+import { SignIcon } from '@/components/sign-icon';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import type { Sena } from '@/data/senas';
-import { useTheme } from '@/hooks/use-theme';
 
 type SignTileProps = {
   sena: Sena;
   onPress: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function SignTile({ sena, onPress }: SignTileProps) {
-  const theme = useTheme();
-
+/** Circle with the sign's hand and its name below, no card behind. */
+export function SignTile({ sena, onPress, style }: SignTileProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${sena.tipo} ${sena.etiqueta}`}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.tile,
-        { backgroundColor: pressed ? theme.backgroundSelected : theme.backgroundElement, borderColor: theme.border },
-      ]}>
-      <Icon name={sena.icon} size={44} color={theme.primary} />
-      <ThemedText type="smallBold" style={styles.label} numberOfLines={1} adjustsFontSizeToFit>
+      style={({ pressed }) => [styles.tile, style, pressed && styles.pressed]}>
+      <SignIcon sena={sena} size={96} />
+      <ThemedText type="smallBold" style={styles.label} numberOfLines={2}>
         {sena.etiqueta}
       </ThemedText>
     </Pressable>
@@ -33,17 +29,20 @@ export function SignTile({ sena, onPress }: SignTileProps) {
 
 const styles = StyleSheet.create({
   tile: {
-    flex: 1,
-    aspectRatio: 0.85,
-    maxWidth: '31%',
-    borderRadius: Radius.md,
-    borderWidth: 1,
+    // Three columns: 2 gaps of Spacing.two between them.
+    width: '31.5%',
+    flexGrow: 0,
     alignItems: 'center',
-    justifyContent: 'center',
     gap: Spacing.two,
-    padding: Spacing.two,
+    paddingVertical: Spacing.two,
+  },
+  pressed: {
+    opacity: 0.6,
+    transform: [{ scale: 0.96 }],
   },
   label: {
-    fontSize: 18,
+    fontSize: 22,
+    lineHeight: 28,
+    textAlign: 'center',
   },
 });

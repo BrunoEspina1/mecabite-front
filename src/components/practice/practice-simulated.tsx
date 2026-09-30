@@ -9,10 +9,14 @@ import { Button } from '@/components/button';
 import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
+import { TorsoGuide } from '@/components/practice/torso-guide';
 import { ThemedText } from '@/components/themed-text';
+import { TourOverlay } from '@/components/tour/tour-overlay';
+import { TourTarget } from '@/components/tour/tour-target';
 import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import type { Sena } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
+import { useTourStep } from '@/onboarding/tour';
 
 // Mock: one check is marked every CHECK_INTERVAL_MS until the recognition backend exists.
 const CHECK_INTERVAL_MS = 1500;
@@ -35,6 +39,7 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
   const checks = ['Configuración', 'Orientación', 'Localización', ...(sena?.movimiento ? ['Movimiento'] : [])];
   const completed = doneCount >= checks.length;
   const granted = permission?.granted ?? false;
+  const tourStep = useTourStep()?.step.id;
 
   // Stopwatch
   useEffect(() => {
@@ -107,12 +112,19 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
         {header}
 
         {/* Framing corners */}
-        <View style={styles.frame} pointerEvents="none">
-          <View style={[styles.corner, styles.tl, { borderColor: theme.cameraText }]} />
-          <View style={[styles.corner, styles.tr, { borderColor: theme.cameraText }]} />
-          <View style={[styles.corner, styles.bl, { borderColor: theme.cameraText }]} />
-          <View style={[styles.corner, styles.br, { borderColor: theme.cameraText }]} />
-        </View>
+        <TourTarget id="practice-framing" style={styles.flex}>
+          <View style={styles.frame} pointerEvents="none">
+            <View style={[styles.corner, styles.tl, { borderColor: theme.cameraText }]} />
+            <View style={[styles.corner, styles.tr, { borderColor: theme.cameraText }]} />
+            <View style={[styles.corner, styles.bl, { borderColor: theme.cameraText }]} />
+            <View style={[styles.corner, styles.br, { borderColor: theme.cameraText }]} />
+            {tourStep === 'framing' ? (
+              <View style={styles.guide}>
+                <TorsoGuide />
+              </View>
+            ) : null}
+          </View>
+        </TourTarget>
 
         <Pressable
           accessibilityRole="button"
@@ -127,22 +139,26 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
         </Pressable>
 
         <View style={styles.bottom}>
-          <View style={[styles.status, { backgroundColor: theme.backgroundElement }]}>
-            <ThemedText type="smallBold" style={styles.statusTitle}>
-              {completed ? '¡Bien hecho! 🎉' : 'Mantén la posición'}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {completed
-                ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
-                : 'Verificando configuración y orientación…'}
-            </ThemedText>
-          </View>
+          <TourTarget id="practice-status">
+            <View style={[styles.status, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="smallBold" style={styles.statusTitle}>
+                {completed ? '¡Bien hecho! 🎉' : 'Mantén la posición'}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.centerText}>
+                {completed
+                  ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
+                  : 'Para reconocer la seña, la cámara debe verte del torso para arriba.'}
+              </ThemedText>
+            </View>
+          </TourTarget>
 
-          <View style={[styles.checks, { backgroundColor: theme.cameraOverlay }]}>
-            {checks.map((label, i) => (
-              <CheckRow key={label} label={label} done={i < doneCount} color={theme.cameraText} />
-            ))}
-          </View>
+          <TourTarget id="practice-checks">
+            <View style={[styles.checks, { backgroundColor: theme.cameraOverlay }]}>
+              {checks.map((label, i) => (
+                <CheckRow key={label} label={label} done={i < doneCount} color={theme.cameraText} />
+              ))}
+            </View>
+          </TourTarget>
 
           {completed ? (
             <View style={styles.actions}>
@@ -152,6 +168,7 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
           ) : null}
         </View>
       </SafeAreaView>
+      <TourOverlay screen="practica" />
     </View>
   );
 }
@@ -188,6 +205,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: Spacing.four,
     marginHorizontal: Spacing.three,
+  },
+  guide: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   corner: {
     position: 'absolute',

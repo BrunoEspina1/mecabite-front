@@ -118,6 +118,10 @@ export default function AjustesScreen() {
             {check.message}
           </ThemedText>
         ) : null}
+
+        <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
+          Ilustraciones de manos: Designed by Freepik
+        </ThemedText>
         <AppVersion />
       </ScrollView>
     </SafeAreaView>

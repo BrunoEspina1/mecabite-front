@@ -28,7 +28,7 @@ export function CheckRow({ label, detail, icon, done = false, error = false, col
       : done
         ? { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }
         : { ios: 'circle', android: 'radio_button_unchecked', web: 'radio_button_unchecked' });
-  const iconColor = icon ? theme.primary : error ? theme.accent : done ? theme.success : textColor;
+  const iconColor = icon ? theme.primary : error ? theme.danger : done ? theme.success : textColor;
 
   return (
     <View style={styles.row}>

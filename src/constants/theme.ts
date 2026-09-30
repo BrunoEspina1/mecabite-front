@@ -13,6 +13,7 @@ export const Palette = {
   roseDark: '#C2185B',
   pink: '#F06292',
   blush: '#F8BBD0',
+  blushLight: '#FDE7EF',
   coral: '#FF6B6B',
   orange: '#FFA726',
   cream: '#FFF7F0',
@@ -22,6 +23,8 @@ export const Palette = {
   grayLight: '#E9E3DE',
   dark: '#141418',
   green: '#4CAF50',
+  red: '#E53935',
+  redSoft: '#FDECEA',
 } as const;
 
 /** Semantic tokens. Only light mode for now. */
@@ -36,10 +39,13 @@ export const Colors = {
     primary: Palette.rose,
     primaryPressed: Palette.roseDark,
     primarySoft: Palette.blush,
+    primaryTint: Palette.blushLight,
     accent: Palette.coral,
     accentSecondary: Palette.orange,
     border: Palette.grayLight,
     success: Palette.green,
+    danger: Palette.red,
+    dangerSoft: Palette.redSoft,
     cameraSurface: Palette.dark,
     cameraOverlay: 'rgba(20, 20, 24, 0.55)',
     cameraText: Palette.white,

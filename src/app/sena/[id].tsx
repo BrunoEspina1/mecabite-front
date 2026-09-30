@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -6,16 +7,27 @@ import { Button } from '@/components/button';
 import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
+import { SignIcon } from '@/components/sign-icon';
 import { ThemedText } from '@/components/themed-text';
+import { TourOverlay } from '@/components/tour/tour-overlay';
+import { TourTarget } from '@/components/tour/tour-target';
 import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import { getSena, getSenasByNivel } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
+import { completeTourAction, useTourStep } from '@/onboarding/tour';
 
 /** 3. Video y descripción de la seña */
 export default function SenaScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const sena = getSena(id);
+  const scrollRef = useRef<ScrollView>(null);
+  const tourStep = useTourStep()?.step.id;
+
+  // The indications and the start button can be below the fold: bring them into view for the tour.
+  useEffect(() => {
+    if (tourStep === 'indications' || tourStep === 'start-practice') scrollRef.current?.scrollToEnd({ animated: true });
+  }, [tourStep]);
 
   if (!sena) {
     return (
@@ -33,7 +45,7 @@ export default function SenaScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         <ScreenHeader
           title={`Nivel ${sena.nivel} · ${sena.tipo} ${sena.etiqueta}`}
           right={
@@ -44,16 +56,18 @@ export default function SenaScreen() {
         />
 
         {/* Video placeholder (mock until real content exists) */}
-        <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
-          <Icon name={sena.icon} size={96} color={theme.primary} />
-          <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
-            <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
+        <TourTarget id="sign-video">
+          <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
+            <SignIcon sena={sena} size={140} />
+            <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
+              <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
+            </View>
+            <View style={styles.progressRow}>
+              <View style={[styles.progressDot, { backgroundColor: theme.primary }]} />
+              <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]} />
+            </View>
           </View>
-          <View style={styles.progressRow}>
-            <View style={[styles.progressDot, { backgroundColor: theme.primary }]} />
-            <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]} />
-          </View>
-        </View>
+        </TourTarget>
 
         <View style={styles.texts}>
           <ThemedText type="subtitle">
@@ -64,36 +78,44 @@ export default function SenaScreen() {
           </ThemedText>
         </View>
 
-        <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
-          <CheckRow
-            label="Configuración"
-            detail={sena.configuracion}
-            icon={{ ios: 'hand.raised', android: 'back_hand', web: 'back_hand' }}
-          />
-          <CheckRow
-            label="Orientación"
-            detail={sena.orientacion}
-            icon={{ ios: 'safari', android: 'explore', web: 'explore' }}
-          />
-          <CheckRow
-            label="Localización"
-            detail={sena.localizacion}
-            icon={{ ios: 'mappin.and.ellipse', android: 'location_on', web: 'location_on' }}
-          />
-          {sena.movimiento ? (
+        <TourTarget id="sign-indications">
+          <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
             <CheckRow
-              label="Movimiento"
-              detail={sena.movimiento}
-              icon={{ ios: 'arrow.triangle.2.circlepath', android: 'sync', web: 'sync' }}
+              label="Configuración"
+              detail={sena.configuracion}
+              icon={{ ios: 'hand.raised', android: 'back_hand', web: 'back_hand' }}
             />
-          ) : null}
-        </View>
+            <CheckRow
+              label="Orientación"
+              detail={sena.orientacion}
+              icon={{ ios: 'safari', android: 'explore', web: 'explore' }}
+            />
+            <CheckRow
+              label="Localización"
+              detail={sena.localizacion}
+              icon={{ ios: 'mappin.and.ellipse', android: 'location_on', web: 'location_on' }}
+            />
+            {sena.movimiento ? (
+              <CheckRow
+                label="Movimiento"
+                detail={sena.movimiento}
+                icon={{ ios: 'arrow.triangle.2.circlepath', android: 'sync', web: 'sync' }}
+              />
+            ) : null}
+          </View>
+        </TourTarget>
 
-        <Button
-          title="Comenzar práctica"
-          onPress={() => router.push({ pathname: '/practica/[id]', params: { id: sena.id } })}
-        />
+        <TourTarget id="sign-start">
+          <Button
+            title="Comenzar práctica"
+            onPress={() => {
+              completeTourAction('sign-start');
+              router.push({ pathname: '/practica/[id]', params: { id: sena.id } });
+            }}
+          />
+        </TourTarget>
       </ScrollView>
+      <TourOverlay screen="sena" />
     </SafeAreaView>
   );
 }
