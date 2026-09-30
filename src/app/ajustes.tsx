@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppVersion } from '@/components/app-version';
 import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api, ApiError } from '@/services/api/client';
 import { getDeviceId, restUrl, updateApiSettings, useApiSettings } from '@/services/api/settings';
@@ -117,6 +118,7 @@ export default function AjustesScreen() {
             {check.message}
           </ThemedText>
         ) : null}
+        <AppVersion />
       </ScrollView>
     </SafeAreaView>
   );
@@ -125,6 +127,7 @@ export default function AjustesScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,

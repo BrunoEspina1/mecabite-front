@@ -2,9 +2,10 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppVersion } from '@/components/app-version';
 import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
+import { BottomTabInset, Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import { NIVELES } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -37,6 +38,7 @@ export default function ProgresoScreen() {
           );
         })}
         <Button title="Ajustes de conexión" variant="text" onPress={() => router.push('/ajustes')} />
+        <AppVersion />
       </ScrollView>
     </SafeAreaView>
   );
@@ -45,6 +47,7 @@ export default function ProgresoScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,

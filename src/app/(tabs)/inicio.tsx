@@ -2,9 +2,10 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppVersion } from '@/components/app-version';
 import { LevelCard } from '@/components/level-card';
 import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, Spacing } from '@/constants/theme';
+import { BottomTabInset, ScreenTopGap, Spacing } from '@/constants/theme';
 import { NIVELES } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -26,6 +27,7 @@ export default function NivelesScreen() {
             />
           ))}
         </View>
+        <AppVersion />
       </ScrollView>
     </SafeAreaView>
   );
@@ -34,6 +36,7 @@ export default function NivelesScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,

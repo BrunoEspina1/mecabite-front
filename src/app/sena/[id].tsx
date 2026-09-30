@@ -7,7 +7,7 @@ import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import { getSena, getSenasByNivel } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -19,9 +19,11 @@ export default function SenaScreen() {
 
   if (!sena) {
     return (
-      <SafeAreaView style={[styles.safe, styles.content, { backgroundColor: theme.background }]}>
-        <ScreenHeader />
-        <ThemedText>Seña no encontrada.</ThemedText>
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+        <View style={styles.content}>
+          <ScreenHeader />
+          <ThemedText>Seña no encontrada.</ThemedText>
+        </View>
       </SafeAreaView>
     );
   }
@@ -99,6 +101,7 @@ export default function SenaScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,

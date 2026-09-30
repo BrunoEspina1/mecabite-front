@@ -90,5 +90,8 @@ export const Radius = {
   pill: 999,
 } as const;
 
+/** Extra space below the notch / Dynamic Island, added on top of the safe-area inset. */
+export const ScreenTopGap = Spacing.three;
+
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

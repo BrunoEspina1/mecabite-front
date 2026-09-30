@@ -11,7 +11,7 @@ import { Icon } from '@/components/icon';
 import { LandmarksOverlay } from '@/components/practice/landmarks-overlay';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import type { Sena, SymbolName } from '@/data/senas';
 import { usePracticeSession } from '@/hooks/use-practice-session';
 import { useTheme } from '@/hooks/use-theme';
@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   padded: {
+    paddingTop: ScreenTopGap,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.three,
   },

@@ -2,10 +2,11 @@ import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppVersion } from '@/components/app-version';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** 1. Pantalla de inicio / Splash */
@@ -29,6 +30,7 @@ export default function WelcomeScreen() {
         </View>
 
         <Button title="Comenzar" onPress={() => router.replace('/inicio')} />
+        <AppVersion style={styles.version} />
       </SafeAreaView>
     </View>
   );
@@ -41,8 +43,12 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.four,
+  },
+  version: {
+    marginTop: Spacing.three,
   },
   hero: {
     flex: 1,

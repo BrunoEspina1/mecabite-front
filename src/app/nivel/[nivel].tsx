@@ -6,7 +6,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { SegmentedLevels } from '@/components/segmented-levels';
 import { SignTile } from '@/components/sign-tile';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { ScreenTopGap, Spacing } from '@/constants/theme';
 import { getNivel, getSenasByNivel } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -41,6 +41,7 @@ export default function CatalogoScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,

@@ -10,7 +10,7 @@ import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
 import type { Sena } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   padded: {
+    paddingTop: ScreenTopGap,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.three,
   },
