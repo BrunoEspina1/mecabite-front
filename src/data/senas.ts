@@ -29,6 +29,11 @@ export type Sena = {
   icon: SymbolName;
   /** Hand drawing (PNG asset): the letter's handshape, or one/two plain hands for words. `icon` is the fallback. */
   image?: number;
+  /**
+   * YouTube id of the sign's video in the INDISCAPACIDAD CDMX glossary of LSM, played from YouTube.
+   * Letters: https://lsm.indiscapacidad.cdmx.gob.mx/ejes/educacion/
+   */
+  video?: string;
 };
 
 const HAND_STATIC: SymbolName = { ios: 'hand.raised', android: 'back_hand', web: 'back_hand' };
@@ -55,6 +60,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
     image: require('../../assets/images/signs/a.png'),
+    video: 'UIdCFNf_Udc',
   },
   {
     id: 'b',
@@ -67,6 +73,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
     image: require('../../assets/images/signs/b.png'),
+    video: 'Ub3BVznewp8',
   },
   {
     id: 'c',
@@ -79,6 +86,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
     image: require('../../assets/images/signs/c.png'),
+    video: 'wxmyvk8yjsQ',
   },
   {
     id: 'l',
@@ -91,6 +99,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     icon: HAND_POINT,
     image: require('../../assets/images/signs/l.png'),
+    video: 'ViQ_CDYqhi8',
   },
   {
     id: 'y',
@@ -103,6 +112,7 @@ export const SENAS: Sena[] = [
     localizacion: 'A la altura del hombro.',
     icon: HAND_STATIC,
     image: require('../../assets/images/signs/y.png'),
+    video: '6EfodoGAJAE',
   },
   // Nivel 2
   {
@@ -117,6 +127,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Curva hacia abajo y hacia adentro.',
     icon: HAND_WAVE,
     image: require('../../assets/images/signs/j.png'),
+    video: 'jFVrrJxdAIM',
   },
   {
     id: 'enie',
@@ -130,6 +141,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Oscilación lateral de la muñeca.',
     icon: HAND_WAVE,
     image: require('../../assets/images/signs/enie.png'),
+    video: 'K3nddBE4iO8',
   },
   {
     id: 'q',
@@ -143,6 +155,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Giro de muñeca hacia abajo.',
     icon: HAND_WAVE,
     image: require('../../assets/images/signs/q.png'),
+    video: 'Wq75muS-EmY',
   },
   {
     id: 'x',
@@ -156,6 +169,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Trazo diagonal corto.',
     icon: HAND_WAVE,
     image: require('../../assets/images/signs/x.png'),
+    video: 'yNWC9DjTMTU',
   },
   {
     id: 'z',
@@ -169,6 +183,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Trazo en zigzag.',
     icon: HAND_POINT,
     image: require('../../assets/images/signs/z.png'),
+    video: 'ipefyBV4iuk',
   },
   // Nivel 3
   {

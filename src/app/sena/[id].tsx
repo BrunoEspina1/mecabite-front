@@ -8,6 +8,7 @@ import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
 import { SignIcon } from '@/components/sign-icon';
+import { SignVideo } from '@/components/sign-video/sign-video';
 import { ThemedText } from '@/components/themed-text';
 import { TourOverlay } from '@/components/tour/tour-overlay';
 import { TourTarget } from '@/components/tour/tour-target';
@@ -55,18 +56,22 @@ export default function SenaScreen() {
           }
         />
 
-        {/* Video placeholder (mock until real content exists) */}
         <TourTarget id="sign-video">
-          <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
-            <SignIcon sena={sena} size={140} />
-            <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
-              <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
+          {sena.video ? (
+            <SignVideo sena={{ ...sena, video: sena.video }} />
+          ) : (
+            // Placeholder for the signs that don't have a video yet.
+            <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
+              <SignIcon sena={sena} size={140} />
+              <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
+                <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
+              </View>
+              <View style={styles.progressRow}>
+                <View style={[styles.progressDot, { backgroundColor: theme.primary }]} />
+                <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]} />
+              </View>
             </View>
-            <View style={styles.progressRow}>
-              <View style={[styles.progressDot, { backgroundColor: theme.primary }]} />
-              <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]} />
-            </View>
-          </View>
+          )}
         </TourTarget>
 
         <View style={styles.texts}>
