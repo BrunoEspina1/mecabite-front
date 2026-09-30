@@ -1,98 +1,86 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+/** 1. Pantalla de inicio / Splash */
+export default function WelcomeScreen() {
+  const theme = useTheme();
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Decorative blobs */}
+      <View style={[styles.blob, styles.blobTop, { backgroundColor: theme.primarySoft }]} />
+      <View style={[styles.blob, styles.blobBottom, { backgroundColor: theme.primarySoft }]} />
+      <View style={[styles.blob, styles.blobAccent, { backgroundColor: theme.accentSecondary }]} />
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.hero}>
+          <View style={[styles.logo, { backgroundColor: theme.backgroundElement }]}>
+            <Icon name={{ ios: 'hand.wave', android: 'waving_hand', web: 'waving_hand' }} size={88} color={theme.primary} />
+          </View>
+          <ThemedText type="title">SeñaFácil</ThemedText>
+          <ThemedText themeColor="textSecondary">Aprende. Practica. Comunica.</ThemedText>
+        </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
+        <Button title="Comenzar" onPress={() => router.replace('/inicio')} />
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    overflow: 'hidden',
   },
-  safeArea: {
+  safe: {
     flex: 1,
     paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingBottom: Spacing.four,
   },
-  heroSection: {
+  hero: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    gap: Spacing.two,
   },
-  title: {
-    textAlign: 'center',
+  logo: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.four,
   },
-  code: {
-    textTransform: 'uppercase',
+  blob: {
+    position: 'absolute',
+    borderRadius: Radius.pill,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  blobTop: {
+    width: 320,
+    height: 320,
+    top: -140,
+    right: -120,
+    opacity: 0.6,
+  },
+  blobBottom: {
+    width: 280,
+    height: 280,
+    bottom: -120,
+    left: -110,
+    opacity: 0.5,
+  },
+  blobAccent: {
+    width: 90,
+    height: 90,
+    bottom: 180,
+    right: -30,
+    opacity: 0.25,
   },
 });

@@ -1,30 +1,52 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Design tokens for SeñaFácil.
+ * Change colors ONLY in `Palette`; screens consume the semantic tokens in `Colors`.
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/** Raw palette (Hult Prize – cálida). */
+export const Palette = {
+  rose: '#E91E63',
+  roseDark: '#C2185B',
+  pink: '#F06292',
+  blush: '#F8BBD0',
+  coral: '#FF6B6B',
+  orange: '#FFA726',
+  cream: '#FFF7F0',
+  white: '#FFFFFF',
+  ink: '#1F1F24',
+  gray: '#6B6B75',
+  grayLight: '#E9E3DE',
+  dark: '#141418',
+  green: '#4CAF50',
+} as const;
+
+/** Semantic tokens. Only light mode for now. */
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: Palette.ink,
+    textSecondary: Palette.gray,
+    textOnPrimary: Palette.white,
+    background: Palette.cream,
+    backgroundElement: Palette.white,
+    backgroundSelected: Palette.blush,
+    primary: Palette.rose,
+    primaryPressed: Palette.roseDark,
+    primarySoft: Palette.blush,
+    accent: Palette.coral,
+    accentSecondary: Palette.orange,
+    border: Palette.grayLight,
+    success: Palette.green,
+    cameraSurface: Palette.dark,
+    cameraOverlay: 'rgba(20, 20, 24, 0.55)',
+    cameraText: Palette.white,
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ThemeColor = keyof typeof Colors.light;
 
 export const Fonts = Platform.select({
   ios: {
@@ -59,6 +81,13 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+} as const;
+
+export const Radius = {
+  sm: 8,
+  md: 16,
+  lg: 24,
+  pill: 999,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
