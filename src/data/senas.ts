@@ -1,5 +1,6 @@
 /**
  * Mock data until the backend exists. Replace these helpers with API calls later.
+ * IDs match the backend catalog (`GET /catalog/signs`): ASCII, e.g. `enie`, `por_favor`.
  */
 
 import type { SymbolViewProps } from 'expo-symbols';
@@ -183,7 +184,7 @@ export const SENAS: Sena[] = [
     icon: HAND_SIGN,
   },
   {
-    id: 'por-favor',
+    id: 'por_favor',
     nivel: '3',
     etiqueta: 'Por favor',
     tipo: 'Palabra',

@@ -34,6 +34,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="nivel/[nivel]" />
         <Stack.Screen name="sena/[id]" />
+        <Stack.Screen name="ajustes" />
         <Stack.Screen
           name="practica/[id]"
           options={{ presentation: 'fullScreenModal', contentStyle: { backgroundColor: theme.cameraSurface } }}

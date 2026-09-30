@@ -9,7 +9,13 @@
     "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.programacion-herycam.mecabite-front"
+      "bundleIdentifier": "com.programacion-herycam.mecabite-front",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "SeñaFácil se conecta al servidor de tu red local para evaluar tus señas. Solo se envían puntos de la mano, nunca video.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -44,7 +50,8 @@
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": false
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

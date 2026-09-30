@@ -12,19 +12,23 @@ type CheckRowProps = {
   /** Custom icon; when omitted the row renders a check that reflects `done`. */
   icon?: SymbolName;
   done?: boolean;
+  /** Marks the row as failed (red cross); takes precedence over `done`. */
+  error?: boolean;
   color?: string;
 };
 
-export function CheckRow({ label, detail, icon, done = false, color }: CheckRowProps) {
+export function CheckRow({ label, detail, icon, done = false, error = false, color }: CheckRowProps) {
   const theme = useTheme();
   const textColor = color ?? theme.text;
 
   const name: SymbolName =
     icon ??
-    (done
-      ? { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }
-      : { ios: 'circle', android: 'radio_button_unchecked', web: 'radio_button_unchecked' });
-  const iconColor = icon ? theme.primary : done ? theme.success : textColor;
+    (error
+      ? { ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }
+      : done
+        ? { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }
+        : { ios: 'circle', android: 'radio_button_unchecked', web: 'radio_button_unchecked' });
+  const iconColor = icon ? theme.primary : error ? theme.accent : done ? theme.success : textColor;
 
   return (
     <View style={styles.row}>
