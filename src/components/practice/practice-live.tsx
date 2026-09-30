@@ -107,10 +107,12 @@ function formatTime(totalSeconds: number) {
  */
 export function PracticeLive({ sena }: { sena: Sena | undefined }) {
   const settings = useApiSettings();
+  // The backend takes the chosen hand as the reference hand for the whole session: changing it starts a new one.
+  const { hand } = usePreferences();
   const [attempt, setAttempt] = useState(0);
   return (
     <PracticeLiveSession
-      key={`${attempt}|${settings.useMock}|${settings.baseUrl}`}
+      key={`${attempt}|${settings.useMock}|${settings.baseUrl}|${hand}`}
       sena={sena}
       onRestart={() => setAttempt((a) => a + 1)}
     />

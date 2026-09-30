@@ -45,6 +45,12 @@ export type CreateSessionRequest = {
   device_id: string;
   client_version: string;
   calibration_id: null;
+  /**
+   * Hand the person signs with (Ajustes / welcome screen). The backend takes it as the reference hand: with
+   * both hands in view it is the one compared with the models and the glove; with one, the visible one is
+   * used. `null` until chosen: the first hand that appears.
+   */
+  dominant_hand: 'left' | 'right' | null;
   record: boolean;
 };
 
@@ -53,6 +59,8 @@ export type CreateSessionResponse = {
   mode: SessionMode;
   target_sign: string | null;
   level: 1 | 2 | 3 | null;
+  /** Echo of the request; missing on servers older than this field. */
+  dominant_hand?: 'left' | 'right' | null;
   status: 'created' | string;
   websocket_path: string;
   expires_in_seconds: number;

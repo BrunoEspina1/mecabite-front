@@ -42,6 +42,7 @@ export function createMockSession(request: CreateSessionRequest, sign: MockSign)
     mode: request.mode,
     target_sign: request.target_sign,
     level: sign.level,
+    dominant_hand: request.dominant_hand,
     status: 'created',
     websocket_path: `/api/v1/ws/sessions/${id}`,
     expires_in_seconds: 900,

@@ -7,6 +7,7 @@ import { createMockSession, MockTransport, type MockSign } from '@/services/api/
 import { ObservationBuilder } from '@/services/api/observation';
 import { WebSocketTransport, type SessionTransport, type TransportStatus } from '@/services/api/session-transport';
 import { getApiSettings, getDeviceId } from '@/services/api/settings';
+import { getPreferences } from '@/services/preferences';
 import type {
   CreateSessionRequest,
   FeedbackMessage,
@@ -111,6 +112,7 @@ export function usePracticeSession(sena: Sena | undefined, enabled: boolean) {
       device_id: getDeviceId(),
       client_version: PROTOCOL_VERSION,
       calibration_id: null,
+      dominant_hand: getPreferences().hand,
       record: settings.record,
     };
 
