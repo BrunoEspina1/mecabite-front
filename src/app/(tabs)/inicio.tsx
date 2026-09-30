@@ -46,7 +46,11 @@ export default function NivelesScreen() {
             );
           })}
         </TourTarget>
-        <AppVersion />
+
+        {/* The version goes at the bottom of the screen, a little above the edge. */}
+        <View style={styles.bottom}>
+          <AppVersion />
+        </View>
       </ScrollView>
       <TourOverlay screen="inicio" />
     </View>
@@ -58,6 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     padding: Spacing.four,
     paddingTop: Spacing.two,
     paddingBottom: BottomTabInset + Spacing.four,
@@ -65,5 +70,10 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: Spacing.three,
+  },
+  bottom: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 20,
   },
 });

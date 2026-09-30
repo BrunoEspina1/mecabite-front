@@ -1,6 +1,7 @@
 import { Colors } from '@/constants/theme';
+import { usePreferences } from '@/services/preferences';
 
-/** Only the light theme exists for now; add a dark variant in `Colors` to support it. */
+/** Colours of the theme chosen in Ajustes (light unless the person switched to dark). */
 export function useTheme() {
-  return Colors.light;
+  return Colors[usePreferences().theme];
 }

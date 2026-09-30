@@ -152,11 +152,11 @@ export function usePracticeSession(sena: Sena | undefined, enabled: boolean) {
     };
   }, [sena, enabled]);
 
-  /** Call for every MediaPipe frame, including frames without hands. */
-  const sendFrame = (frame: LandmarksEvent) => {
+  /** Call for every MediaPipe frame, including frames without hands. `maxHands` is 2 for signs made with both. */
+  const sendFrame = (frame: LandmarksEvent, maxHands = 1) => {
     const t = transport.current;
     if (!t || !ready.current || !builder.current) return;
-    const observation = builder.current.build(frame);
+    const observation = builder.current.build(frame, maxHands);
     if (t.send(observation)) {
       sentAt.current.set(observation.sequence, Date.now());
       counters.current.sent += 1;

@@ -23,12 +23,50 @@ export const Palette = {
   grayLight: '#E9E3DE',
   dark: '#141418',
   green: '#4CAF50',
+  greenDark: '#2E7D32',
+  greenSoft: '#E6F4E7',
   red: '#E53935',
   redSoft: '#FDECEA',
+  // Dark theme
+  night: '#141418',
+  nightRaised: '#1F1F24',
+  nightLine: '#34343D',
+  paper: '#F4F1EE',
+  ash: '#A9A6AE',
+  wine: '#5A2038',
+  wineDeep: '#2A1720',
+  wineSelected: '#4A1F31',
+  greenLight: '#81C784',
+  greenNight: '#1E3A22',
+  redLight: '#EF5350',
+  redNight: '#3A1B1B',
 } as const;
 
-/** Semantic tokens. Only light mode for now. */
-export const Colors = {
+export type ThemeColor =
+  | 'text'
+  | 'textSecondary'
+  | 'textOnPrimary'
+  | 'background'
+  | 'backgroundElement'
+  | 'backgroundSelected'
+  | 'primary'
+  | 'primaryPressed'
+  | 'primarySoft'
+  | 'primaryTint'
+  | 'accent'
+  | 'accentSecondary'
+  | 'border'
+  | 'success'
+  | 'successStrong'
+  | 'successSoft'
+  | 'danger'
+  | 'dangerSoft'
+  | 'cameraSurface'
+  | 'cameraOverlay'
+  | 'cameraText';
+
+/** Semantic tokens per theme. The camera screens look the same in both. */
+export const Colors: Record<'light' | 'dark', Record<ThemeColor, string>> = {
   light: {
     text: Palette.ink,
     textSecondary: Palette.gray,
@@ -44,15 +82,38 @@ export const Colors = {
     accentSecondary: Palette.orange,
     border: Palette.grayLight,
     success: Palette.green,
+    successStrong: Palette.greenDark,
+    successSoft: Palette.greenSoft,
     danger: Palette.red,
     dangerSoft: Palette.redSoft,
     cameraSurface: Palette.dark,
     cameraOverlay: 'rgba(20, 20, 24, 0.55)',
     cameraText: Palette.white,
   },
-} as const;
-
-export type ThemeColor = keyof typeof Colors.light;
+  dark: {
+    text: Palette.paper,
+    textSecondary: Palette.ash,
+    textOnPrimary: Palette.white,
+    background: Palette.night,
+    backgroundElement: Palette.nightRaised,
+    backgroundSelected: Palette.wineSelected,
+    primary: Palette.rose,
+    primaryPressed: Palette.roseDark,
+    primarySoft: Palette.wine,
+    primaryTint: Palette.wineDeep,
+    accent: Palette.coral,
+    accentSecondary: Palette.orange,
+    border: Palette.nightLine,
+    success: Palette.green,
+    successStrong: Palette.greenLight,
+    successSoft: Palette.greenNight,
+    danger: Palette.redLight,
+    dangerSoft: Palette.redNight,
+    cameraSurface: Palette.dark,
+    cameraOverlay: 'rgba(20, 20, 24, 0.55)',
+    cameraText: Palette.white,
+  },
+};
 
 export const Fonts = Platform.select({
   ios: {

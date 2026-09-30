@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBar } from '@/components/app-bar';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { checkFraming, selectHands, Settled, type FramingIssue } from '@/components/practice/framing';
 import { LandmarksOverlay } from '@/components/practice/landmarks-overlay';
 import { TorsoGuide } from '@/components/practice/torso-guide';
 import { ThemedText } from '@/components/themed-text';
@@ -20,6 +21,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useTourStep } from '@/onboarding/tour';
 import { HandLandmarkerView, type LandmarksEvent } from '@/modules/hand-landmarker';
 import { useApiSettings } from '@/services/api/settings';
+import { usePreferences } from '@/services/preferences';
 import { markSignCompleted } from '@/services/progress';
 import type { FeedbackCode } from '@/services/api/types';
 
@@ -51,7 +53,7 @@ const FEEDBACK_ICON: Record<FeedbackCode, SymbolName> = {
  * thinks you are doing or say how to fix it, and the app only reports what failed.
  */
 const FEEDBACK_TITLE: Record<FeedbackCode, string> = {
-  show_hand: 'Colócate del torso para arriba',
+  show_hand: 'Muestra tu mano',
   hold_position: 'Mantén la posición',
   correct: '¡Bien!',
   approved: '¡Seña aprobada! 🎉',
@@ -65,6 +67,23 @@ const FEEDBACK_TITLE: Record<FeedbackCode, string> = {
 };
 
 const FRAMING_HINT = 'Para reconocer la seña, la cámara debe verte del torso para arriba.';
+
+/** What the phone itself sees wrong with the picture, before asking the backend anything. */
+const FRAMING_TITLE: Record<FramingIssue, string> = {
+  missing: 'No te veo',
+  far: 'Acércate',
+  close: 'Aléjate un poco',
+  cut: 'Colócate del torso para arriba',
+};
+const FRAMING_SUBTITLE: Record<FramingIssue, string> = {
+  missing: 'Colócate frente a la cámara, del torso para arriba.',
+  far: 'Estás muy lejos de la cámara.',
+  close: FRAMING_HINT,
+  cut: FRAMING_HINT,
+};
+const HAND_ICON: SymbolName = { ios: 'hand.raised.fill', android: 'back_hand', web: 'back_hand' };
+const HAND_NAME = { left: 'izquierda', right: 'derecha' } as const;
+const HAND_HINT = 'Puedes cambiarla en Ajustes.';
 const GLOVE_HINT = 'No llegan datos del guante: revisa que esté encendido y cerca de la laptop.';
 
 const WRONG = new Set<FeedbackCode>([
@@ -75,8 +94,6 @@ const WRONG = new Set<FeedbackCode>([
   'too_slow',
   'use_both_hands',
 ]);
-
-const FRAMING = new Set<FeedbackCode>(['show_hand', 'adjust_framing']);
 
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
@@ -108,6 +125,14 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [seconds, setSeconds] = useState(0);
+  const [guideArea, setGuideArea] = useState({ width: 0, height: 0 });
+  const [framingIssue, setFramingIssue] = useState<FramingIssue | null>(null);
+  const [otherHand, setOtherHand] = useState(false);
+  // A moment of patience before showing or hiding either warning, so they don't flicker.
+  const [settled] = useState(() => ({ framing: new Settled<FramingIssue>(600, 300), hand: new Settled<true>(400, 300) }));
+  const { hand: preferredHand } = usePreferences();
+  // Signs made with both hands are evaluated with both, whichever hand the person chose.
+  const bothHands = sena?.dosManos === true;
 
   const granted = permission?.granted ?? false;
   const tourStep = useTourStep()?.step.id;
@@ -126,8 +151,15 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
   }, [approved, sena]);
 
   const handleLandmarks = ({ nativeEvent }: { nativeEvent: LandmarksEvent }) => {
-    setFrame(nativeEvent);
-    session.sendFrame(nativeEvent);
+    const now = nativeEvent.timestampMs;
+    setFramingIssue(settled.framing.update(checkFraming(nativeEvent.poseLandmarks), now));
+    // Only the chosen hand is evaluated. When the camera sees just the other one, the frame stays on the
+    // phone and the person is told to switch.
+    const selection = selectHands(nativeEvent, preferredHand, bothHands);
+    setOtherHand(settled.hand.update(selection.otherHand ? true : null, now) !== null);
+    // The overlay draws what is being evaluated; with the wrong hand, what the camera sees.
+    setFrame(selection.frame ?? nativeEvent);
+    if (selection.frame) session.sendFrame(selection.frame, bothHands ? 2 : 1);
   };
 
 
@@ -225,9 +257,14 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
 
   const code = feedback?.feedback_code;
   const gloveMissing = !approved && feedback?.state === 'disconnected';
-  const corrections = approved ? [] : (feedback?.corrections ?? []);
-  const wrong = !approved && code != null && WRONG.has(code);
-  const needsFraming = !approved && !gloveMissing && phase === 'ready' && (code == null || FRAMING.has(code));
+  const live = !approved && !gloveMissing && phase === 'ready';
+  const switchHand = live && otherHand && preferredHand !== null;
+  // The guide only comes up when the body really isn't in the picture: judged here, or reported by the backend.
+  const framing = live && !switchHand ? (framingIssue ?? (code === 'adjust_framing' ? 'cut' : null)) : null;
+  const needsFraming = framing !== null;
+  const overridden = switchHand || needsFraming;
+  const corrections = approved || overridden ? [] : (feedback?.corrections ?? []);
+  const wrong = !approved && !overridden && code != null && WRONG.has(code);
   const title =
     phase === 'error'
       ? 'Sin conexión con el servidor'
@@ -235,9 +272,13 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         ? 'Conectando…'
         : gloveMissing
           ? 'Conecta el guante'
-          : code
-            ? FEEDBACK_TITLE[code]
-            : FEEDBACK_TITLE.show_hand;
+          : switchHand
+            ? `Usa tu mano ${HAND_NAME[preferredHand]}`
+            : framing
+              ? FRAMING_TITLE[framing]
+              : code
+                ? FEEDBACK_TITLE[code]
+                : FEEDBACK_TITLE.show_hand;
   const subtitle =
     phase === 'error'
       ? (session.error ?? '')
@@ -245,7 +286,13 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
         : (cameraError ??
           session.error ??
-          (gloveMissing ? GLOVE_HINT : corrections.length ? null : needsFraming ? FRAMING_HINT : null));
+          (gloveMissing
+            ? GLOVE_HINT
+            : switchHand
+              ? HAND_HINT
+              : framing
+                ? FRAMING_SUBTITLE[framing]
+                : null));
   const consecutive = feedback?.consecutive_correct ?? 0;
 
   return (
@@ -257,7 +304,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         style={StyleSheet.absoluteFill}
         active={!approved}
         facing={facing}
-        numHands={1}
+        numHands={2}
         onLandmarks={handleLandmarks}
         onError={({ nativeEvent }) => setCameraError(nativeEvent.message)}
       />
@@ -266,8 +313,11 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
       {appBar(true)}
       <SafeAreaView style={[styles.flex, styles.padded]} edges={['bottom', 'left', 'right']} pointerEvents="box-none">
         <TourTarget id="practice-framing" style={styles.flex}>
-          <View style={styles.spacer} pointerEvents="none">
-            {needsFraming || tourStep === 'framing' ? <TorsoGuide /> : null}
+          <View
+            style={styles.spacer}
+            pointerEvents="none"
+            onLayout={(e) => setGuideArea({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
+            {needsFraming || tourStep === 'framing' ? <TorsoGuide width={guideArea.width} height={guideArea.height} /> : null}
           </View>
         </TourTarget>
 
@@ -279,9 +329,9 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
                 { backgroundColor: wrong ? theme.dangerSoft : theme.backgroundElement, borderColor: wrong ? theme.danger : 'transparent' },
               ]}>
               <View style={styles.statusRow}>
-                {code || needsFraming ? (
+                {code || overridden ? (
                   <Icon
-                    name={code ? FEEDBACK_ICON[code] : FRAMING_ICON}
+                    name={switchHand ? HAND_ICON : needsFraming ? FRAMING_ICON : code ? FEEDBACK_ICON[code] : FRAMING_ICON}
                     size={wrong ? 26 : 22}
                     color={wrong ? theme.danger : theme.primary}
                   />
@@ -328,7 +378,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
 
           {approved || phase === 'error' ? (
             <View style={styles.actions}>
-              <Button title={phase === 'error' ? 'Reintentar' : 'Repetir'} variant="text" style={styles.flex} onPress={onRestart} />
+              <Button title={phase === 'error' ? 'Reintentar' : 'Repetir'} variant="overlay" style={styles.flex} onPress={onRestart} />
               <Button title="Continuar" style={styles.flex} onPress={() => router.back()} />
             </View>
           ) : null}
@@ -385,7 +435,7 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     overflow: 'hidden',
   },
   flip: {

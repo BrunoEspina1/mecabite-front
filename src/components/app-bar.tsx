@@ -10,8 +10,6 @@ import { Spacing } from '@/constants/theme';
 
 type AppBarProps = {
   title?: string;
-  /** Short status shown right after the title, e.g. "Completado". */
-  detail?: string;
   showBack?: boolean;
   /** What goes on the right. Defaults to the brand; pass `null` for nothing. */
   right?: ReactNode;
@@ -24,7 +22,7 @@ type AppBarProps = {
  * scrolling content and takes the space below the notch itself, so screens add no top padding of their own
  * and the back button is always in the same place.
  */
-export function AppBar({ title, detail, showBack = true, right, color }: AppBarProps) {
+export function AppBar({ title, showBack = true, right, color }: AppBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -39,16 +37,9 @@ export function AppBar({ title, detail, showBack = true, right, color }: AppBarP
             <Icon name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }} size={22} color={color} />
           </Pressable>
         ) : null}
-        <View style={styles.titles}>
-          <ThemedText type="smallBold" style={[styles.title, color ? { color } : null]} numberOfLines={1}>
-            {title}
-          </ThemedText>
-          {detail ? (
-            <ThemedText type="small" themeColor="textSecondary" style={styles.detail} numberOfLines={1}>
-              {detail}
-            </ThemedText>
-          ) : null}
-        </View>
+        <ThemedText type="smallBold" style={[styles.title, color ? { color } : null]} numberOfLines={1}>
+          {title}
+        </ThemedText>
         {right === undefined ? <Brand /> : right}
       </View>
     </View>
@@ -86,19 +77,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titles: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: Spacing.two,
-  },
   title: {
-    flexShrink: 1,
+    flex: 1,
     fontSize: 16,
-  },
-  detail: {
-    fontSize: 13,
-    lineHeight: 18,
   },
   brand: {
     flexDirection: 'row',

@@ -48,9 +48,27 @@ export default function SenaScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom', 'left', 'right']}>
+      {/* No brand on this screen: the bar only carries where you are and whether the sign is done. */}
       <AppBar
         title={`Nivel ${sena.nivel} · ${sena.tipo} ${sena.etiqueta}`}
-        detail={completed ? 'Completado' : `${posicion}/${delNivel.length}`}
+        right={
+          completed ? (
+            <View style={[styles.tag, { backgroundColor: theme.successSoft }]}>
+              <Icon
+                name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                size={14}
+                color={theme.success}
+              />
+              <ThemedText type="smallBold" style={[styles.tagText, { color: theme.successStrong }]}>
+                Completado
+              </ThemedText>
+            </View>
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary" style={styles.tagText}>
+              {posicion}/{delNivel.length}
+            </ThemedText>
+          )
+        }
       />
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         <TourTarget id="sign-video">
@@ -166,6 +184,18 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: Radius.pill,
     marginLeft: -4,
+  },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.pill,
+  },
+  tagText: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   texts: {
     gap: Spacing.one,

@@ -34,8 +34,11 @@ export type Sena = {
   /**
    * YouTube id of the sign's video in the INDISCAPACIDAD CDMX glossary of LSM, played from YouTube.
    * Letters: https://lsm.indiscapacidad.cdmx.gob.mx/ejes/educacion/
+   * Words: the `saludos`, `expresiones-cotidianas` and `familia` sections of the same site.
    */
   video?: string;
+  /** Made with both hands: both are evaluated and the person's chosen hand doesn't apply. */
+  dosManos?: boolean;
 };
 
 const HAND_STATIC: SymbolName = { ios: 'hand.raised', android: 'back_hand', web: 'back_hand' };
@@ -213,43 +216,49 @@ export const SENAS: Sena[] = [
     tipo: 'Palabra',
     descripcion: 'Mano abierta que se aleja de la frente como un saludo.',
     configuracion: 'Mano abierta con dedos juntos.',
-    orientacion: 'Palma hacia el frente.',
+    orientacion: 'Palma hacia abajo, junto a la sien.',
     localizacion: 'Junto a la frente.',
     movimiento: 'Hacia afuera, alejándose de la cabeza.',
     icon: HAND_WAVE,
     image: require('../../assets/images/signs/hand-one.png'),
+    video: 'lhrN2iaPdaM',
   },
   {
     id: 'gracias',
     nivel: '3',
     etiqueta: 'Gracias',
     tipo: 'Palabra',
-    descripcion: 'Mano abierta que baja desde la barbilla hacia el frente.',
-    configuracion: 'Mano abierta con dedos juntos.',
-    orientacion: 'Palma hacia ti.',
-    localizacion: 'Barbilla.',
-    movimiento: 'Hacia adelante y abajo.',
+    dosManos: true,
+    descripcion: 'El dedo medio de una mano toca la palma de la otra y la mano se levanta.',
+    configuracion: 'Una mano abierta con el dedo medio doblado; la otra abierta como apoyo.',
+    orientacion: 'Palma de apoyo hacia arriba.',
+    localizacion: 'Frente al pecho.',
+    movimiento: 'La mano sube y se aleja de la palma de apoyo.',
     icon: HAND_SIGN,
     image: require('../../assets/images/signs/hand-two.png'),
+    video: 'jAvN4wvvpgY',
   },
   {
     id: 'por_favor',
     nivel: '3',
     etiqueta: 'Por favor',
     tipo: 'Palabra',
-    descripcion: 'Mano abierta que hace círculos sobre el pecho.',
-    configuracion: 'Mano abierta.',
-    orientacion: 'Palma hacia el pecho.',
-    localizacion: 'Pecho.',
-    movimiento: 'Circular.',
+    dosManos: true,
+    descripcion: 'Las palmas juntas se frotan una contra la otra.',
+    configuracion: 'Ambas manos abiertas, palma con palma.',
+    orientacion: 'Palmas enfrentadas.',
+    localizacion: 'Frente al pecho.',
+    movimiento: 'Las palmas se frotan entre sí.',
     icon: HAND_SIGN,
     image: require('../../assets/images/signs/hand-two.png'),
+    video: 'M5FowymHDx8',
   },
   {
     id: 'ayuda',
     nivel: '3',
     etiqueta: 'Ayuda',
     tipo: 'Palabra',
+    dosManos: true,
     descripcion: 'Puño sobre la palma contraria, ambas manos suben juntas.',
     configuracion: 'Una mano en puño, la otra abierta debajo.',
     orientacion: 'Palma de apoyo hacia arriba.',
@@ -263,13 +272,14 @@ export const SENAS: Sena[] = [
     nivel: '3',
     etiqueta: 'Mamá',
     tipo: 'Palabra',
-    descripcion: 'Pulgar de la mano abierta toca la barbilla dos veces.',
-    configuracion: 'Mano abierta con dedos separados.',
-    orientacion: 'Palma hacia un lado.',
-    localizacion: 'Barbilla.',
+    descripcion: 'La mano en M toca los labios dos veces.',
+    configuracion: 'Índice, medio y anular extendidos y juntos, como la letra M.',
+    orientacion: 'Dedos hacia la boca.',
+    localizacion: 'Labios.',
     movimiento: 'Dos toques cortos.',
-    icon: HAND_SIGN,
+    icon: HAND_POINT,
     image: require('../../assets/images/signs/hand-one.png'),
+    video: 'osNRQD_qxXw',
   },
 ];
 

@@ -4,11 +4,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AppBar } from '@/components/app-bar';
 import { AppVersion } from '@/components/app-version';
 import { Icon } from '@/components/icon';
+import { Segmented } from '@/components/segmented';
 import { ThemedText } from '@/components/themed-text';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import type { SymbolName } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 import { restartTour } from '@/onboarding/tour';
+import { HAND_OPTIONS, updatePreferences, usePreferences } from '@/services/preferences';
 
 type SettingsRowProps = {
   icon: SymbolName;
@@ -46,6 +48,8 @@ function SettingsRow({ icon, title, detail, onPress }: SettingsRowProps) {
 
 export default function AjustesScreen() {
   const theme = useTheme();
+  const preferences = usePreferences();
+  const dark = preferences.theme === 'dark';
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -80,6 +84,42 @@ export default function AjustesScreen() {
           onPress={() => router.push('/terminos')}
         />
 
+        <View style={[styles.card, styles.hand, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
+          <View style={styles.flex}>
+            <ThemedText type="smallBold">Mano con la que haces las señas</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              En la práctica solo se revisa esa mano.
+            </ThemedText>
+          </View>
+          <Segmented options={HAND_OPTIONS} value={preferences.hand} onChange={(hand) => updatePreferences({ hand })} />
+        </View>
+
+        {/* Whatever space is left: the theme switch sits at the bottom of it, in the middle. */}
+        <View style={styles.rest}>
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityLabel="Modo oscuro"
+            accessibilityState={{ checked: dark }}
+            onPress={() => updatePreferences({ theme: dark ? 'light' : 'dark' })}
+            style={({ pressed }) => [
+              styles.themeSwitch,
+              { backgroundColor: pressed ? theme.primaryTint : theme.backgroundElement, borderColor: theme.border },
+            ]}>
+            <Icon
+              name={
+                dark
+                  ? { ios: 'sun.max.fill', android: 'light_mode', web: 'light_mode' }
+                  : { ios: 'moon.fill', android: 'dark_mode', web: 'dark_mode' }
+              }
+              size={28}
+              color={theme.primary}
+            />
+          </Pressable>
+          <ThemedText type="small" themeColor="textSecondary">
+            {dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          </ThemedText>
+        </View>
+
         <AppVersion />
       </ScrollView>
     </View>
@@ -91,6 +131,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     padding: Spacing.four,
     paddingTop: Spacing.two,
     paddingBottom: BottomTabInset + Spacing.four,
@@ -107,5 +148,24 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     borderRadius: Radius.md,
     borderWidth: 1,
+  },
+  hand: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  rest: {
+    flex: 1,
+    minHeight: 120,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: Spacing.two,
+  },
+  themeSwitch: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

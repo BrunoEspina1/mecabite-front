@@ -35,6 +35,7 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
   const [seconds, setSeconds] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
   const [attempt, setAttempt] = useState(0);
+  const [guideArea, setGuideArea] = useState({ width: 0, height: 0 });
 
   // One simulated check per thing a real session reviews: signs with movement take one more.
   const checks = sena?.movimiento ? 4 : 3;
@@ -128,14 +129,17 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
       <SafeAreaView style={[styles.flex, styles.padded]} edges={['bottom', 'left', 'right']} pointerEvents="box-none">
         {/* Framing corners */}
         <TourTarget id="practice-framing" style={styles.flex}>
-          <View style={styles.frame} pointerEvents="none">
+          <View
+            style={styles.frame}
+            pointerEvents="none"
+            onLayout={(e) => setGuideArea({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
             <View style={[styles.corner, styles.tl, { borderColor: theme.cameraText }]} />
             <View style={[styles.corner, styles.tr, { borderColor: theme.cameraText }]} />
             <View style={[styles.corner, styles.bl, { borderColor: theme.cameraText }]} />
             <View style={[styles.corner, styles.br, { borderColor: theme.cameraText }]} />
             {tourStep === 'framing' ? (
               <View style={styles.guide}>
-                <TorsoGuide />
+                <TorsoGuide width={guideArea.width} height={guideArea.height} />
               </View>
             ) : null}
           </View>
@@ -157,7 +161,7 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
 
           {completed ? (
             <View style={styles.actions}>
-              <Button title="Repetir" variant="text" style={styles.flex} onPress={restart} />
+              <Button title="Repetir" variant="overlay" style={styles.flex} onPress={restart} />
               <Button title="Continuar" style={styles.flex} onPress={() => router.back()} />
             </View>
           ) : null}
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
   guide: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
   },
   corner: {
     position: 'absolute',

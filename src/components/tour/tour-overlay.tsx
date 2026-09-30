@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -131,7 +131,11 @@ export function TourOverlay({ screen }: { screen: TourScreen }) {
           ) : (
             <Pressable
               accessibilityRole="button"
-              onPress={nextTourStep}
+              onPress={() => {
+                nextTourStep();
+                // The tour ends inside practice mode: close it and leave the person on Inicio.
+                if (isLast) router.dismissTo('/inicio');
+              }}
               hitSlop={8}
               style={({ pressed }) => [styles.next, { backgroundColor: pressed ? theme.primaryPressed : theme.primary }]}>
               <ThemedText type="smallBold" style={{ color: theme.textOnPrimary }}>

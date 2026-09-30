@@ -29,19 +29,14 @@ export default function ProgresoScreen() {
   );
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+    <View
+      style={[
+        styles.screen,
+        { backgroundColor: theme.background, borderColor: theme.border },
+      ]}
+    >
       <AppBar title="Tu progreso" showBack={false} />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.card]}>
-          <View style={styles.row}>
-            <ThemedText type="smallBold">Señas aprobadas</ThemedText>
-            <ThemedText type="smallBold" style={{ color: theme.primary }}>
-              {total} de {SENAS.length}
-            </ThemedText>
-          </View>
-          {bar(total / SENAS.length)}
-        </View>
-
         {NIVELES.map((nivel) => {
           const senas = getSenasByNivel(nivel.id);
           const done = senas.filter((sena) => completed.has(sena.id)).length;
@@ -93,7 +88,21 @@ export default function ProgresoScreen() {
           );
         })}
 
-        <AppVersion />
+        {/* The total closes the list, right under the levels. */}
+        <View style={styles.summary}>
+          <View style={styles.row}>
+            <ThemedText type="smallBold">Señas aprobadas</ThemedText>
+            <ThemedText type="smallBold" style={{ color: theme.primary }}>
+              {total} de {SENAS.length}
+            </ThemedText>
+          </View>
+          {bar(total / SENAS.length)}
+        </View>
+
+        {/* Only the version goes at the very bottom of the screen. */}
+        <View style={styles.bottom}>
+          <AppVersion />
+        </View>
       </ScrollView>
     </View>
   );
@@ -104,6 +113,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     padding: Spacing.four,
     paddingTop: Spacing.two,
     paddingBottom: BottomTabInset + Spacing.four,
@@ -111,6 +121,17 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  bottom: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 20,
+  },
+  // No border or background: it is the total of the list, lined up with the cards' contents.
+  summary: {
+    marginTop: 20,
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.three,
   },
   card: {
     padding: Spacing.three,

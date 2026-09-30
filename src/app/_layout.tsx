@@ -1,10 +1,11 @@
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useTourStep } from '@/onboarding/tour';
+import { usePreferences } from '@/services/preferences';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,23 +19,23 @@ if (__DEV__) {
   };
 }
 
-const theme = Colors.light;
-
-const navigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: theme.primary,
-    background: theme.background,
-    card: theme.backgroundElement,
-    text: theme.text,
-    border: theme.border,
-  },
-};
-
 export default function RootLayout() {
   // Swiping back mid-tour would skip the step the person is on.
   const touring = useTourStep() !== null;
+  const theme = useTheme();
+  const dark = usePreferences().theme === 'dark';
+
+  const navigationTheme = {
+    ...(dark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(dark ? DarkTheme : DefaultTheme).colors,
+      primary: theme.primary,
+      background: theme.background,
+      card: theme.backgroundElement,
+      text: theme.text,
+      border: theme.border,
+    },
+  };
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -42,7 +43,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      <StatusBar style="dark" />
+      <StatusBar style={dark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{ headerShown: false, gestureEnabled: !touring, contentStyle: { backgroundColor: theme.background } }}>
         <Stack.Screen name="index" />
