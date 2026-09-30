@@ -10,7 +10,7 @@ type LandmarksOverlayProps = {
 };
 
 /**
- * Draws the detected landmarks over the camera preview. The preview uses aspect-fill,
+ * Draws the detected hand and upper-body landmarks over the camera preview. The preview uses aspect-fill,
  * so normalized image coords are scaled by the larger ratio and centered.
  */
 export function LandmarksOverlay({ frame, width, height }: LandmarksOverlayProps) {
@@ -23,6 +23,21 @@ export function LandmarksOverlay({ frame, width, height }: LandmarksOverlayProps
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {frame.poseLandmarks?.slice(0, UPPER_BODY).map(([x, y, , visibility], i) =>
+        visibility < MIN_VISIBILITY ? null : (
+          <View
+            key={`pose-${i}`}
+            style={[
+              styles.poseDot,
+              {
+                left: offsetX + x * frame.imageWidth * scale - POSE_DOT / 2,
+                top: offsetY + y * frame.imageHeight * scale - POSE_DOT / 2,
+                backgroundColor: theme.accentSecondary,
+              },
+            ]}
+          />
+        ),
+      )}
       {frame.hands.flatMap((hand, h) =>
         hand.landmarks.map(([x, y], i) => (
           <View
@@ -44,6 +59,11 @@ export function LandmarksOverlay({ frame, width, height }: LandmarksOverlayProps
 }
 
 const DOT = 10;
+const POSE_DOT = 8;
+/** Face, shoulders, arms and hips; legs are not drawn. */
+const UPPER_BODY = 25;
+/** Same threshold the backend uses to consider a body point visible. */
+const MIN_VISIBILITY = 0.5;
 
 const styles = StyleSheet.create({
   dot: {
@@ -52,5 +72,11 @@ const styles = StyleSheet.create({
     height: DOT,
     borderRadius: DOT / 2,
     borderWidth: 2,
+  },
+  poseDot: {
+    position: 'absolute',
+    width: POSE_DOT,
+    height: POSE_DOT,
+    borderRadius: POSE_DOT / 2,
   },
 });

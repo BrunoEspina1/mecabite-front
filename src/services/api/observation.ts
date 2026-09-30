@@ -27,7 +27,9 @@ export class ObservationBuilder {
           landmarks: hand.landmarks.map(([x, y, z]) => [round5(x), round5(y), round5(z)]),
           handedness: { label: hand.handedness.label, score: round5(hand.handedness.score) },
         })),
-        pose_landmarks: null,
+        pose_landmarks:
+          frame.poseLandmarks?.map(([x, y, z, visibility]) => [round5(x), round5(y), round5(z), round5(visibility)]) ??
+          null,
       },
       glove: null,
     };

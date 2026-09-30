@@ -6,6 +6,10 @@ export type DetectedHand = {
   handedness: { label: string; score: number };
 };
 
+/** One body point as returned by MediaPipe Pose: normalized [x, y, z, visibility]. */
+export type PoseLandmark = [number, number, number, number];
+
+/** Hand and pose results of the SAME frame (same image, same timestamp). */
 export type LandmarksEvent = {
   /** Capture time (presentation timestamp) in ms, monotonic. Not relative to anything yet. */
   timestampMs: number;
@@ -16,6 +20,8 @@ export type LandmarksEvent = {
   mirrored: boolean;
   /** Empty when no hand is detected. */
   hands: DetectedHand[];
+  /** 33 points of the first detected person; null when no body is detected. */
+  poseLandmarks: PoseLandmark[] | null;
 };
 
 export type HandLandmarkerViewProps = ViewProps & {

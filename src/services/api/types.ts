@@ -93,7 +93,10 @@ export type ObservationMessage = {
     image_height: number;
     mirrored: boolean;
     hands: ObservationHand[];
-    /** 33 × [x, y, z, visibility]; reserved for level 3, `null` for now. */
+    /**
+     * 33 × [x, y, z, visibility], sent in every level: the backend uses it to check the person
+     * faces the camera with face and shoulders visible. `null` only when no body is detected.
+     */
     pose_landmarks: [number, number, number, number][] | null;
   };
   /** Reserved until the glove exists. */

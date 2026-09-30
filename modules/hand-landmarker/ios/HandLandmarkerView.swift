@@ -2,12 +2,18 @@ import AVFoundation
 import ExpoModulesCore
 import MediaPipeTasksVision
 
-/// Camera preview + MediaPipe Hand Landmarker in live-stream mode.
+/// Camera preview + MediaPipe Hand and Pose Landmarkers in live-stream mode.
 ///
 /// Frames are rotated to portrait and mirrored for the front camera *before* MediaPipe sees them,
 /// so landmarks line up with the (mirrored) preview. `mirrored` in every event reports what
 /// MediaPipe actually received, as required by the backend contract.
-class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate, HandLandmarkerLiveStreamDelegate {
+///
+/// Both landmarkers get the SAME image with the SAME timestamp. Their results arrive in separate
+/// callbacks, so they are joined by timestamp and emitted as one event once both are in. A frame
+/// that one of them drops is dropped entirely (never half-filled).
+class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate,
+  HandLandmarkerLiveStreamDelegate, PoseLandmarkerLiveStreamDelegate
+{
   let onLandmarks = EventDispatcher()
   let onReady = EventDispatcher()
   let onError = EventDispatcher()
@@ -17,16 +23,31 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
   private let videoOutput = AVCaptureVideoDataOutput()
   private let sessionQueue = DispatchQueue(label: "handlandmarker.session")
   private let frameQueue = DispatchQueue(label: "handlandmarker.frames")
+  private let resultQueue = DispatchQueue(label: "handlandmarker.results")
 
-  private var landmarker: HandLandmarker?
+  // Owned by frameQueue.
+  private var handLandmarker: HandLandmarker?
+  private var poseLandmarker: PoseLandmarker?
+  private var lastTimestampMs = -1
+
   private var active = false
   private var facing: AVCaptureDevice.Position = .front
   private var numHands = 1
   private var configured = false
 
-  // Written on frameQueue, read in the MediaPipe callback.
-  private var frameInfo: (width: Int, height: Int, mirrored: Bool) = (0, 0, false)
-  private var lastTimestampMs = -1
+  /// One frame waiting for both landmarkers. Owned by resultQueue, keyed by timestamp.
+  private struct PendingFrame {
+    let width: Int
+    let height: Int
+    let mirrored: Bool
+    var hands: [[String: Any]]?
+    var poseArrived = false
+    /// 33 × [x, y, z, visibility]; nil when no body was detected.
+    var pose: [[Double]]?
+  }
+  private var pending: [Int: PendingFrame] = [:]
+  /// If one landmarker stops answering, don't let unmatched frames pile up.
+  private let maxPending = 30
 
   required init(appContext: AppContext? = nil) {
     previewLayer = AVCaptureVideoPreviewLayer(session: session)
@@ -63,7 +84,7 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
   func setNumHands(_ value: Int) {
     guard value != numHands else { return }
     numHands = value
-    frameQueue.async { [weak self] in self?.landmarker = nil }
+    frameQueue.async { [weak self] in self?.handLandmarker = nil }
   }
 
   // MARK: - Session
@@ -80,6 +101,7 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
         }
       } else if self.session.isRunning {
         self.session.stopRunning()
+        self.resultQueue.async { self.pending.removeAll() }
       }
     }
   }
@@ -129,48 +151,94 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
     }
   }
 
-  // MARK: - Frames
+  // MARK: - Landmarkers
 
-  private func makeLandmarker() -> HandLandmarker? {
+  private func modelPath(_ name: String) -> String? {
     guard
       let bundleURL = Bundle(for: HandLandmarkerView.self).url(forResource: "HandLandmarkerAssets", withExtension: "bundle"),
-      let modelPath = Bundle(url: bundleURL)?.path(forResource: "hand_landmarker", ofType: "task")
+      let path = Bundle(url: bundleURL)?.path(forResource: name, ofType: "task")
     else {
-      emitError("No se encontró el modelo hand_landmarker.task")
+      emitError("No se encontró el modelo \(name).task")
       return nil
     }
-    let options = HandLandmarkerOptions()
-    options.baseOptions.modelAssetPath = modelPath
-    options.runningMode = .liveStream
-    options.numHands = numHands
-    options.minHandDetectionConfidence = 0.5
-    options.minHandPresenceConfidence = 0.5
-    options.minTrackingConfidence = 0.5
-    options.handLandmarkerLiveStreamDelegate = self
+    return path
+  }
+
+  /// GPU first (needed for ≥ 20 fps with both models, RNF-02); CPU if the GPU delegate fails
+  /// (e.g. on the simulator).
+  private func withGPUFallback<T>(_ make: (Delegate) throws -> T) -> T? {
     do {
-      return try HandLandmarker(options: options)
+      return try make(.GPU)
     } catch {
-      emitError("No se pudo iniciar MediaPipe: \(error.localizedDescription)")
-      return nil
+      do {
+        return try make(.CPU)
+      } catch {
+        emitError("No se pudo iniciar MediaPipe: \(error.localizedDescription)")
+        return nil
+      }
     }
   }
 
+  private func makeHandLandmarker() -> HandLandmarker? {
+    guard let path = modelPath("hand_landmarker") else { return nil }
+    return withGPUFallback { delegate in
+      let options = HandLandmarkerOptions()
+      options.baseOptions.modelAssetPath = path
+      options.baseOptions.delegate = delegate
+      options.runningMode = .liveStream
+      options.numHands = numHands
+      options.minHandDetectionConfidence = 0.5
+      options.minHandPresenceConfidence = 0.5
+      options.minTrackingConfidence = 0.5
+      options.handLandmarkerLiveStreamDelegate = self
+      return try HandLandmarker(options: options)
+    }
+  }
+
+  private func makePoseLandmarker() -> PoseLandmarker? {
+    guard let path = modelPath("pose_landmarker_lite") else { return nil }
+    return withGPUFallback { delegate in
+      let options = PoseLandmarkerOptions()
+      options.baseOptions.modelAssetPath = path
+      options.baseOptions.delegate = delegate
+      options.runningMode = .liveStream
+      options.numPoses = 1
+      options.minPoseDetectionConfidence = 0.5
+      options.minPosePresenceConfidence = 0.5
+      options.minTrackingConfidence = 0.5
+      options.shouldOutputSegmentationMasks = false
+      options.poseLandmarkerLiveStreamDelegate = self
+      return try PoseLandmarker(options: options)
+    }
+  }
+
+  // MARK: - Frames
+
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
     guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    if landmarker == nil { landmarker = makeLandmarker() }
-    guard let landmarker else { return }
+    if handLandmarker == nil { handLandmarker = makeHandLandmarker() }
+    if poseLandmarker == nil { poseLandmarker = makePoseLandmarker() }
+    guard let handLandmarker, let poseLandmarker else { return }
 
     // Capture time (presentation timestamp, monotonic host clock), not send time.
     let timestampMs = Int(CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * 1000)
     guard timestampMs > lastTimestampMs else { return }
     lastTimestampMs = timestampMs
 
-    frameInfo = (CVPixelBufferGetWidth(pixelBuffer), CVPixelBufferGetHeight(pixelBuffer), connection.isVideoMirrored)
+    let frame = PendingFrame(
+      width: CVPixelBufferGetWidth(pixelBuffer),
+      height: CVPixelBufferGetHeight(pixelBuffer),
+      mirrored: connection.isVideoMirrored
+    )
+    // Registered before detecting, so the callbacks always find it.
+    resultQueue.sync { pending[timestampMs] = frame }
 
     do {
       let image = try MPImage(pixelBuffer: pixelBuffer, orientation: .up)
-      try landmarker.detectAsync(image: image, timestampInMilliseconds: timestampMs)
+      try handLandmarker.detectAsync(image: image, timestampInMilliseconds: timestampMs)
+      try poseLandmarker.detectAsync(image: image, timestampInMilliseconds: timestampMs)
     } catch {
+      resultQueue.async { [weak self] in self?.pending[timestampMs] = nil }
       emitError("Error al procesar el cuadro: \(error.localizedDescription)")
     }
   }
@@ -182,16 +250,16 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
     error: Error?
   ) {
     if let error {
-      emitError(error.localizedDescription)
+      drop(timestampInMilliseconds, error)
       return
     }
-    let info = frameInfo
     var hands: [[String: Any]] = []
     if let result {
       for (index, points) in result.landmarks.enumerated() {
         let category = index < result.handedness.count ? result.handedness[index].first : nil
         hands.append([
           "landmarks": points.map { [Double($0.x), Double($0.y), Double($0.z)] },
+          // Raw MediaPipe label: the backend interprets it according to `mirrored`.
           "handedness": [
             "label": category?.categoryName ?? "",
             "score": Double(category?.score ?? 0),
@@ -199,14 +267,58 @@ class HandLandmarkerView: ExpoView, AVCaptureVideoDataOutputSampleBufferDelegate
         ])
       }
     }
+    resultQueue.async { [weak self] in
+      guard let self, self.pending[timestampInMilliseconds] != nil else { return }
+      self.pending[timestampInMilliseconds]?.hands = hands
+      self.emitIfComplete(timestampInMilliseconds)
+    }
+  }
+
+  func poseLandmarker(
+    _ poseLandmarker: PoseLandmarker,
+    didFinishDetection result: PoseLandmarkerResult?,
+    timestampInMilliseconds: Int,
+    error: Error?
+  ) {
+    if let error {
+      drop(timestampInMilliseconds, error)
+      return
+    }
+    let pose = result?.landmarks.first.map { points in
+      points.map { [Double($0.x), Double($0.y), Double($0.z), $0.visibility?.doubleValue ?? 0] }
+    }
+    resultQueue.async { [weak self] in
+      guard let self, self.pending[timestampInMilliseconds] != nil else { return }
+      self.pending[timestampInMilliseconds]?.pose = pose
+      self.pending[timestampInMilliseconds]?.poseArrived = true
+      self.emitIfComplete(timestampInMilliseconds)
+    }
+  }
+
+  /// Runs on resultQueue.
+  private func emitIfComplete(_ timestampMs: Int) {
+    guard let frame = pending[timestampMs] else { return }
+    guard let hands = frame.hands, frame.poseArrived else {
+      if pending.count > maxPending, let oldest = pending.keys.min() { pending[oldest] = nil }
+      return
+    }
+    // Older frames never got their other half: they were dropped by one of the landmarkers.
+    pending = pending.filter { $0.key > timestampMs }
+
     let payload: [String: Any] = [
-      "timestampMs": timestampInMilliseconds,
-      "imageWidth": info.width,
-      "imageHeight": info.height,
-      "mirrored": info.mirrored,
+      "timestampMs": timestampMs,
+      "imageWidth": frame.width,
+      "imageHeight": frame.height,
+      "mirrored": frame.mirrored,
       "hands": hands,
+      "poseLandmarks": frame.pose ?? NSNull(),
     ]
     DispatchQueue.main.async { [weak self] in self?.onLandmarks(payload) }
+  }
+
+  private func drop(_ timestampMs: Int, _ error: Error) {
+    resultQueue.async { [weak self] in self?.pending[timestampMs] = nil }
+    emitError(error.localizedDescription)
   }
 
   private func emitError(_ message: String) {
