@@ -6,8 +6,10 @@ import { Button } from '@/components/button';
 import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { ScreenHeader } from '@/components/screen-header';
+import { SignAnimation3D } from '@/components/sign-animation-3d';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
+import { getSignAnimation } from '@/data/sign-animations';
 import { getSena, getSenasByNivel } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -28,6 +30,7 @@ export default function SenaScreen() {
 
   const delNivel = getSenasByNivel(sena.nivel);
   const posicion = delNivel.findIndex((s) => s.id === sena.id) + 1;
+  const animation = getSignAnimation(sena.id);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -41,8 +44,11 @@ export default function SenaScreen() {
           }
         />
 
-        {/* Video placeholder (mock until real content exists) */}
-        <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
+        {animation ? (
+          <SignAnimation3D animation={animation} />
+        ) : (
+          /* Video placeholder (mock until real content exists) */
+          <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
           <Icon name={sena.icon} size={96} color={theme.primary} />
           <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
             <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
@@ -51,7 +57,8 @@ export default function SenaScreen() {
             <View style={[styles.progressDot, { backgroundColor: theme.primary }]} />
             <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]} />
           </View>
-        </View>
+          </View>
+        )}
 
         <View style={styles.texts}>
           <ThemedText type="subtitle">

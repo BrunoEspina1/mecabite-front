@@ -48,6 +48,16 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light;
 
+/** Soft, matte cream-skin colors for the 3D hand (no textures). */
+export const HandColors = {
+  skin: '#F3D3BB',
+  /** Palm side, slightly rosier so the hand's orientation reads at a glance. */
+  palm: '#F2C6B4',
+  trail: Palette.rose,
+  lightSky: '#FFF8F2',
+  lightGround: '#E9CDB9',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
