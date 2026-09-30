@@ -198,7 +198,10 @@ export type FeedbackMessage = {
   message: string;
   /** Fixes to show under the title (empty when nothing to fix). Optional for older servers. */
   corrections?: Correction[];
+  /** Glove on the chosen hand: the one used for corrections. */
   glove?: GloveStatus;
+  /** Glove on the other hand (one glove per hand); informative for now. */
+  other_glove?: GloveStatus;
   processing_time_ms: number;
 };
 

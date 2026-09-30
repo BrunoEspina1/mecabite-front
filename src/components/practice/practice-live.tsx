@@ -217,7 +217,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
                 style={[styles.chipDot, { backgroundColor: feedback.glove.connected ? theme.success : theme.accent }]}
               />
               <ThemedText type="small" style={{ color: theme.cameraText }}>
-                Guante
+                {feedback.other_glove?.connected ? 'Guantes' : 'Guante'}
               </ThemedText>
             </View>
           ) : null}
