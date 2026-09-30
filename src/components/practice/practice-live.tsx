@@ -39,7 +39,19 @@ const FEEDBACK_ICON: Record<FeedbackCode, SymbolName> = {
   wrong_movement: { ios: 'arrow.up.and.down.and.arrow.left.and.right', android: 'open_with', web: 'open_with' },
   wrong_localization: { ios: 'scope', android: 'my_location', web: 'my_location' },
   too_slow: { ios: 'timer', android: 'timer', web: 'timer' },
+  use_both_hands: { ios: 'hands.clap.fill', android: 'waving_hand', web: 'waving_hand' },
+  adjust_framing: { ios: 'person.crop.rectangle', android: 'center_focus_strong', web: 'center_focus_strong' },
 };
+
+const NEEDS_CORRECTION = new Set<FeedbackCode>([
+  'wrong_configuration',
+  'wrong_orientation',
+  'wrong_movement',
+  'wrong_localization',
+  'too_slow',
+  'use_both_hands',
+  'adjust_framing',
+]);
 
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
@@ -213,7 +225,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
                 <Icon
                   name={FEEDBACK_ICON[code]}
                   size={22}
-                  color={code.startsWith('wrong') || code === 'too_slow' ? theme.accent : theme.primary}
+                  color={NEEDS_CORRECTION.has(code) ? theme.accent : theme.primary}
                 />
               ) : null}
               <ThemedText type="smallBold" style={styles.statusTitle}>

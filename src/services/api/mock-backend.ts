@@ -75,7 +75,7 @@ export class MockTransport implements SessionTransport {
         protocol_version: PROTOCOL_VERSION,
         model_version: 'mock',
         min_sample_rate_hz: 15,
-        required_inputs: sign.level === 3 ? ['hand', 'pose'] : ['hand'],
+        required_inputs: ['hand', 'pose'],
         server_timestamp_ms: 0,
       });
     });

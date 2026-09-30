@@ -68,7 +68,11 @@ export type ApiErrorCode =
   | 'SESSION_NOT_READY'
   | 'INVALID_OBSERVATION'
   | 'PROTOCOL_VERSION_UNSUPPORTED'
-  | 'INFERENCE_ERROR';
+  | 'INFERENCE_ERROR'
+  /** The backend has no trained vision model (`vision train`). */
+  | 'MODEL_NOT_AVAILABLE'
+  /** The sign is in the catalog but the model has no data for it yet. */
+  | 'SIGN_NOT_TRAINED';
 
 export type ApiErrorBody = {
   error: { code: ApiErrorCode | string; message: string; details?: Record<string, unknown> };
@@ -139,7 +143,11 @@ export type FeedbackCode =
   | 'wrong_orientation'
   | 'wrong_movement'
   | 'wrong_localization'
-  | 'too_slow';
+  | 'too_slow'
+  /** A two-handed sign (gracias, por favor) done with one hand. */
+  | 'use_both_hands'
+  /** Face and shoulders must be visible, facing the camera; `message` says what to fix. */
+  | 'adjust_framing';
 
 export type FeedbackMessage = {
   type: 'feedback';
