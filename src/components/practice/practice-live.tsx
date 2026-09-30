@@ -28,6 +28,9 @@ const REQUIRED_EXECUTIONS = 3;
 /** Visual support per feedback_code (never parse `message`). */
 const WRONG_ICON: SymbolName = { ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' };
 const FRAMING_ICON: SymbolName = { ios: 'person.crop.rectangle', android: 'center_focus_strong', web: 'center_focus_strong' };
+/** Where a correction came from: the glove sensors or the camera. */
+const GLOVE_ICON: SymbolName = { ios: 'hand.point.up.left.fill', android: 'back_hand', web: 'back_hand' };
+const CAMERA_ICON: SymbolName = { ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' };
 
 const FEEDBACK_ICON: Record<FeedbackCode, SymbolName> = {
   show_hand: FRAMING_ICON,
@@ -62,6 +65,7 @@ const FEEDBACK_TITLE: Record<FeedbackCode, string> = {
 };
 
 const FRAMING_HINT = 'Para reconocer la seña, la cámara debe verte del torso para arriba.';
+const GLOVE_HINT = 'No llegan datos del guante: revisa que esté encendido y cerca de la laptop.';
 
 const WRONG = new Set<FeedbackCode>([
   'wrong_configuration',
@@ -171,6 +175,18 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
               {connectionLabel}
             </ThemedText>
           </Pressable>
+          {feedback?.glove ? (
+            <View
+              accessibilityLabel={feedback.glove.connected ? 'Guante conectado' : 'Guante sin datos'}
+              style={[styles.chip, { backgroundColor: theme.cameraOverlay }]}>
+              <View
+                style={[styles.chipDot, { backgroundColor: feedback.glove.connected ? theme.success : theme.accent }]}
+              />
+              <ThemedText type="small" style={{ color: theme.cameraText }}>
+                Guante
+              </ThemedText>
+            </View>
+          ) : null}
           {withCamera ? flipCamera : null}
         </View>
       }
@@ -208,22 +224,28 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
   }
 
   const code = feedback?.feedback_code;
+  const gloveMissing = !approved && feedback?.state === 'disconnected';
+  const corrections = approved ? [] : (feedback?.corrections ?? []);
   const wrong = !approved && code != null && WRONG.has(code);
-  const needsFraming = !approved && phase === 'ready' && (code == null || FRAMING.has(code));
+  const needsFraming = !approved && !gloveMissing && phase === 'ready' && (code == null || FRAMING.has(code));
   const title =
     phase === 'error'
       ? 'Sin conexión con el servidor'
       : phase !== 'ready' && phase !== 'ended'
         ? 'Conectando…'
-        : code
-          ? FEEDBACK_TITLE[code]
-          : FEEDBACK_TITLE.show_hand;
+        : gloveMissing
+          ? 'Conecta el guante'
+          : code
+            ? FEEDBACK_TITLE[code]
+            : FEEDBACK_TITLE.show_hand;
   const subtitle =
     phase === 'error'
       ? (session.error ?? '')
       : approved
         ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
-        : (cameraError ?? session.error ?? (needsFraming ? FRAMING_HINT : null));
+        : (cameraError ??
+          session.error ??
+          (gloveMissing ? GLOVE_HINT : corrections.length ? null : needsFraming ? FRAMING_HINT : null));
   const consecutive = feedback?.consecutive_correct ?? 0;
 
   return (
@@ -273,6 +295,19 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
                   {subtitle}
                 </ThemedText>
               ) : null}
+
+              {corrections.map((correction) => (
+                <View key={`${correction.part}-${correction.action}`} style={styles.correction}>
+                  <Icon
+                    name={correction.source === 'glove' ? GLOVE_ICON : CAMERA_ICON}
+                    size={16}
+                    color={wrong ? theme.danger : theme.primary}
+                  />
+                  <ThemedText type="smallBold" style={styles.correctionText}>
+                    {correction.message}
+                  </ThemedText>
+                </View>
+              ))}
 
               {feedback?.progress != null && !approved ? (
                 <View style={[styles.track, { backgroundColor: theme.primarySoft }]}>
@@ -377,6 +412,17 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontSize: 17,
+  },
+  correction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    gap: Spacing.one,
+  },
+  correctionText: {
+    flexShrink: 1,
+    textAlign: 'center',
   },
   track: {
     alignSelf: 'stretch',

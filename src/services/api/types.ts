@@ -149,6 +149,30 @@ export type FeedbackCode =
   /** Face and shoulders must be visible, facing the camera; `message` says what to fix. */
   | 'adjust_framing';
 
+export type GloveFinger = 'pulgar' | 'indice' | 'medio' | 'anular' | 'menique';
+
+/**
+ * A concrete fix, e.g. "Estira más el dedo anular". Ordered by priority; the backend sends
+ * at most two and only once they have held for ~0.4 s, so they can be shown as-is.
+ */
+export type Correction = {
+  component: ComponentName;
+  /** A finger (GloveFinger), 'hand', 'palm', 'fingers', 'wrist' or 'arm'. */
+  part: GloveFinger | 'hand' | 'palm' | 'fingers' | 'wrist' | 'arm' | string;
+  /** extend | flex | curve | open | rotate_facing | rotate_side | point_up | point_down | tilt_up | tilt_down | roll_left | roll_right | raise */
+  action: string;
+  message: string;
+  source: 'glove' | 'camera';
+};
+
+/** What the glove reads now (1 = bent, 2 = half, 3 = stretched; tilt in degrees). */
+export type GloveStatus = {
+  connected: boolean;
+  fingers?: Record<GloveFinger, number>;
+  roll?: number;
+  pitch?: number;
+};
+
 export type FeedbackMessage = {
   type: 'feedback';
   sequence: number;
@@ -164,6 +188,9 @@ export type FeedbackMessage = {
   components: Record<ComponentName, ComponentStatus>;
   feedback_code: FeedbackCode | null;
   message: string;
+  /** Fixes to show under the title (empty when nothing to fix). Optional for older servers. */
+  corrections?: Correction[];
+  glove?: GloveStatus;
   processing_time_ms: number;
 };
 
