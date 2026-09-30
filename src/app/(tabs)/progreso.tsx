@@ -1,76 +1,136 @@
-import { router } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
-import { AppVersion } from '@/components/app-version';
-import { Button } from '@/components/button';
-import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, Radius, ScreenTopGap, Spacing } from '@/constants/theme';
-import { NIVELES } from '@/data/senas';
-import { useTheme } from '@/hooks/use-theme';
+import { AppBar } from "@/components/app-bar";
+import { AppVersion } from "@/components/app-version";
+import { Icon } from "@/components/icon";
+import { ThemedText } from "@/components/themed-text";
+import { BottomTabInset, Radius, Spacing } from "@/constants/theme";
+import { getSenasByNivel, NIVELES, SENAS } from "@/data/senas";
+import { useTheme } from "@/hooks/use-theme";
+import { useCompletedSigns } from "@/services/progress";
 
-// Mock progress until the backend exists.
-const PROGRESO: Record<string, number> = { '1': 0.6, '2': 0.2, '3': 0 };
-
+/** Signs approved in practice, per level. Every level card leads to that level. */
 export default function ProgresoScreen() {
   const theme = useTheme();
+  const completed = useCompletedSigns();
+
+  const total = SENAS.filter((sena) => completed.has(sena.id)).length;
+
+  const bar = (value: number) => (
+    <View style={[styles.track, { backgroundColor: theme.primarySoft }]}>
+      <View
+        style={[
+          styles.fill,
+          { width: `${value * 100}%`, backgroundColor: theme.primary },
+        ]}
+      />
+    </View>
+  );
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppBar title="Tu progreso" showBack={false} />
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText type="subtitle">Tu progreso</ThemedText>
+        <View style={[styles.card]}>
+          <View style={styles.row}>
+            <ThemedText type="smallBold">Señas aprobadas</ThemedText>
+            <ThemedText type="smallBold" style={{ color: theme.primary }}>
+              {total} de {SENAS.length}
+            </ThemedText>
+          </View>
+          {bar(total / SENAS.length)}
+        </View>
+
         {NIVELES.map((nivel) => {
-          const value = PROGRESO[nivel.id] ?? 0;
+          const senas = getSenasByNivel(nivel.id);
+          const done = senas.filter((sena) => completed.has(sena.id)).length;
+
           return (
-            <View key={nivel.id} style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
+            <Pressable
+              key={nivel.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Ir al nivel ${nivel.id}, ${nivel.titulo}. ${done} de ${senas.length} señas aprobadas`}
+              onPress={() =>
+                router.push({
+                  pathname: "/nivel/[nivel]",
+                  params: { nivel: nivel.id },
+                })
+              }
+              style={({ pressed }) => [
+                styles.card,
+                {
+                  backgroundColor: pressed
+                    ? theme.primaryTint
+                    : theme.backgroundElement,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
               <View style={styles.row}>
-                <ThemedText type="smallBold">
-                  Nivel {nivel.id} · {nivel.titulo}
-                </ThemedText>
+                <View style={styles.flex}>
+                  <ThemedText type="smallBold">Nivel {nivel.id}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {nivel.titulo}
+                  </ThemedText>
+                </View>
                 <ThemedText type="smallBold" style={{ color: theme.primary }}>
-                  {Math.round(value * 100)}%
+                  {done}/{senas.length}
                 </ThemedText>
+                <Icon
+                  name={{
+                    ios: "chevron.right",
+                    android: "chevron_right",
+                    web: "chevron_right",
+                  }}
+                  size={16}
+                  color={theme.textSecondary}
+                />
               </View>
-              <View style={[styles.track, { backgroundColor: theme.primarySoft }]}>
-                <View style={[styles.fill, { width: `${value * 100}%`, backgroundColor: theme.primary }]} />
-              </View>
-            </View>
+
+              {bar(done / senas.length)}
+            </Pressable>
           );
         })}
-        <Button title="Ajustes de conexión" variant="text" onPress={() => router.push('/conexion')} />
+
         <AppVersion />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  screen: {
     flex: 1,
-    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,
+    paddingTop: Spacing.two,
     paddingBottom: BottomTabInset + Spacing.four,
     gap: Spacing.three,
+  },
+  flex: {
+    flex: 1,
   },
   card: {
     padding: Spacing.three,
     borderRadius: Radius.md,
     borderWidth: 1,
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.two,
   },
   track: {
     height: 8,
     borderRadius: Radius.pill,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   fill: {
-    height: '100%',
+    height: "100%",
     borderRadius: Radius.pill,
   },
 });

@@ -1,5 +1,5 @@
 /**
- * Design tokens for SeñaFácil.
+ * Design tokens for EnSeñas.
  * Change colors ONLY in `Palette`; screens consume the semantic tokens in `Colors`.
  */
 
@@ -95,9 +95,6 @@ export const Radius = {
   lg: 24,
   pill: 999,
 } as const;
-
-/** Extra space below the notch / Dynamic Island, added on top of the safe-area inset. */
-export const ScreenTopGap = Spacing.three;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

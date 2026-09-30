@@ -5,30 +5,23 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppBar } from '@/components/app-bar';
 import { Button } from '@/components/button';
-import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
 import { LandmarksOverlay } from '@/components/practice/landmarks-overlay';
 import { TorsoGuide } from '@/components/practice/torso-guide';
-import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { TourOverlay } from '@/components/tour/tour-overlay';
 import { TourTarget } from '@/components/tour/tour-target';
-import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import type { Sena, SymbolName } from '@/data/senas';
 import { usePracticeSession } from '@/hooks/use-practice-session';
 import { useTheme } from '@/hooks/use-theme';
 import { useTourStep } from '@/onboarding/tour';
 import { HandLandmarkerView, type LandmarksEvent } from '@/modules/hand-landmarker';
 import { useApiSettings } from '@/services/api/settings';
-import type { ComponentName, FeedbackCode } from '@/services/api/types';
-
-const COMPONENT_LABELS: Record<ComponentName, string> = {
-  configuration: 'Configuración',
-  orientation: 'Orientación',
-  localization: 'Localización',
-  movement: 'Movimiento',
-};
+import { markSignCompleted } from '@/services/progress';
+import type { FeedbackCode } from '@/services/api/types';
 
 const REQUIRED_EXECUTIONS = 3;
 
@@ -115,7 +108,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
   const granted = permission?.granted ?? false;
   const tourStep = useTourStep()?.step.id;
   const session = usePracticeSession(sena, granted);
-  const { feedback, phase, stats } = session;
+  const { feedback, phase } = session;
   const approved = feedback?.state === 'approved' || session.summary?.approved === true;
 
   useEffect(() => {
@@ -123,6 +116,10 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
     const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(timer);
   }, [granted, approved]);
+
+  useEffect(() => {
+    if (approved && sena) markSignCompleted(sena.id);
+  }, [approved, sena]);
 
   const handleLandmarks = ({ nativeEvent }: { nativeEvent: LandmarksEvent }) => {
     setFrame(nativeEvent);
@@ -138,8 +135,23 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         ? 'Reconectando…'
         : 'Sin conexión';
 
-  const header = (
-    <ScreenHeader
+  const flipCamera = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Cambiar cámara"
+      onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))}
+      style={[styles.flip, { backgroundColor: theme.cameraOverlay }]}>
+      <Icon
+        name={{ ios: 'arrow.triangle.2.circlepath.camera', android: 'flip_camera_ios', web: 'flip_camera_ios' }}
+        size={22}
+        color={theme.cameraText}
+      />
+    </Pressable>
+  );
+
+  // No brand here: the right of the bar is for the connection status and the camera switch.
+  const appBar = (withCamera: boolean) => (
+    <AppBar
       title="Modo práctica"
       color={theme.cameraText}
       right={
@@ -159,9 +171,7 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
               {connectionLabel}
             </ThemedText>
           </Pressable>
-          <ThemedText type="smallBold" style={{ color: theme.cameraText }}>
-            {formatTime(seconds)}
-          </ThemedText>
+          {withCamera ? flipCamera : null}
         </View>
       }
     />
@@ -177,10 +187,10 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
 
   if (!granted) {
     return (
-      <SafeAreaView style={[styles.flex, styles.padded, { backgroundColor: theme.cameraSurface }]}>
+      <SafeAreaView style={[styles.flex, { backgroundColor: theme.cameraSurface }]} edges={['bottom', 'left', 'right']}>
         <StatusBar style="light" />
-        {header}
-        <View style={styles.permission}>
+        {appBar(false)}
+        <View style={[styles.permission, styles.padded]}>
           <Icon name={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} size={56} color={theme.primary} />
           <ThemedText type="smallBold" style={[styles.centerText, { color: theme.cameraText }]}>
             Necesitamos acceso a tu cámara para verificar tu seña.
@@ -215,9 +225,6 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
         : (cameraError ?? session.error ?? (needsFraming ? FRAMING_HINT : null));
   const consecutive = feedback?.consecutive_correct ?? 0;
-  const components = feedback
-    ? (Object.entries(feedback.components) as [ComponentName, string][]).filter(([, s]) => s !== 'not_required')
-    : (['configuration', 'orientation'] as ComponentName[]).map((c) => [c, 'insufficient_data'] as [ComponentName, string]);
 
   return (
     <View
@@ -234,26 +241,13 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
       />
       <LandmarksOverlay frame={frame} width={size.width} height={size.height} />
 
-      <SafeAreaView style={[styles.flex, styles.padded]} pointerEvents="box-none">
-        {header}
-
+      {appBar(true)}
+      <SafeAreaView style={[styles.flex, styles.padded]} edges={['bottom', 'left', 'right']} pointerEvents="box-none">
         <TourTarget id="practice-framing" style={styles.flex}>
           <View style={styles.spacer} pointerEvents="none">
             {needsFraming || tourStep === 'framing' ? <TorsoGuide /> : null}
           </View>
         </TourTarget>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Cambiar cámara"
-          onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))}
-          style={[styles.flip, { backgroundColor: theme.cameraOverlay }]}>
-          <Icon
-            name={{ ios: 'arrow.triangle.2.circlepath.camera', android: 'flip_camera_ios', web: 'flip_camera_ios' }}
-            size={24}
-            color={theme.cameraText}
-          />
-        </Pressable>
 
         <View style={styles.bottom}>
           <TourTarget id="practice-status">
@@ -297,24 +291,6 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
             </View>
           </TourTarget>
 
-          <TourTarget id="practice-checks">
-            <View style={[styles.checks, { backgroundColor: theme.cameraOverlay }]}>
-              {components.map(([name, status]) => (
-                <CheckRow
-                  key={name}
-                  label={COMPONENT_LABELS[name]}
-                  done={status === 'correct'}
-                  error={status === 'incorrect'}
-                  color={theme.cameraText}
-                />
-              ))}
-              <ThemedText type="small" style={[styles.stats, { color: theme.cameraText }]}>
-                {stats.sendRateHz} Hz · RTT {stats.rttMs ?? '–'} ms
-                {stats.dropped ? ` · ${stats.dropped} sin enviar` : ''}
-              </ThemedText>
-            </View>
-          </TourTarget>
-
           {approved || phase === 'error' ? (
             <View style={styles.actions}>
               <Button title={phase === 'error' ? 'Reintentar' : 'Repetir'} variant="text" style={styles.flex} onPress={onRestart} />
@@ -333,7 +309,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   padded: {
-    paddingTop: ScreenTopGap,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.three,
   },
@@ -379,12 +354,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   flip: {
-    position: 'absolute',
-    top: 72,
-    right: Spacing.four,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -426,16 +398,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 6,
     borderRadius: Radius.pill,
-  },
-  checks: {
-    borderRadius: Radius.md,
-    padding: Spacing.three,
-    gap: Spacing.three,
-  },
-  stats: {
-    fontSize: 12,
-    lineHeight: 16,
-    opacity: 0.7,
   },
   actions: {
     flexDirection: 'row',

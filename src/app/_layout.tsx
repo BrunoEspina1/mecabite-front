@@ -51,6 +51,7 @@ export default function RootLayout() {
         <Stack.Screen name="sena/[id]" />
         <Stack.Screen name="conexion" />
         <Stack.Screen name="privacidad" />
+        <Stack.Screen name="terminos" />
         <Stack.Screen
           name="practica/[id]"
           options={{ presentation: 'fullScreenModal', contentStyle: { backgroundColor: theme.cameraSurface } }}

@@ -13,6 +13,8 @@ export type Nivel = {
   id: NivelId;
   titulo: string;
   subtitulo: string;
+  /** Hand drawing that stands for the level, from the same set as the signs. `icon` is the fallback. */
+  image: number;
   icon: SymbolName;
 };
 
@@ -42,9 +44,27 @@ const HAND_WAVE: SymbolName = { ios: 'hand.wave', android: 'waving_hand', web: '
 const HAND_SIGN: SymbolName = { ios: 'hands.sparkles', android: 'sign_language', web: 'sign_language' };
 
 export const NIVELES: Nivel[] = [
-  { id: '1', titulo: 'Letras estáticas', subtitulo: 'A B C L Y', icon: HAND_STATIC },
-  { id: '2', titulo: 'Letras con movimiento', subtitulo: 'J Ñ Q X Z', icon: HAND_WAVE },
-  { id: '3', titulo: 'Palabras', subtitulo: 'Hola · Gracias · Por favor · Ayuda · Mamá', icon: HAND_SIGN },
+  {
+    id: '1',
+    titulo: 'Letras estáticas',
+    subtitulo: 'A B C L Y',
+    image: require('../../assets/images/signs/a.png'),
+    icon: HAND_STATIC,
+  },
+  {
+    id: '2',
+    titulo: 'Letras con movimiento',
+    subtitulo: 'J Ñ Q X Z',
+    image: require('../../assets/images/signs/j.png'),
+    icon: HAND_WAVE,
+  },
+  {
+    id: '3',
+    titulo: 'Palabras',
+    subtitulo: 'Hola · Gracias · Por favor · Ayuda · Mamá',
+    image: require('../../assets/images/signs/hand-two.png'),
+    icon: HAND_SIGN,
+  },
 ];
 
 export const SENAS: Sena[] = [

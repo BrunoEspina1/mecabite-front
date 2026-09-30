@@ -20,8 +20,7 @@ export type TourTargetId =
   | 'sign-indications'
   | 'sign-start'
   | 'practice-framing'
-  | 'practice-status'
-  | 'practice-checks';
+  | 'practice-status';
 
 export type TourStep = {
   id: string;
@@ -40,7 +39,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     screen: 'inicio',
-    title: '¡Bienvenido a SeñaFácil!',
+    title: '¡Bienvenido a EnSeñas!',
     text: 'Aprende señas practicando frente a la cámara. Te mostramos cómo.',
   },
   {
@@ -113,13 +112,6 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'practice-status',
     title: 'Tu resultado',
     text: 'En rojo lo que falla. Hazla bien 3 veces para aprobar.',
-  },
-  {
-    id: 'checks',
-    screen: 'practica',
-    target: 'practice-checks',
-    title: 'Lo que se revisa',
-    text: 'Verde: bien. Rojo: hay que corregir.',
   },
   {
     id: 'done',

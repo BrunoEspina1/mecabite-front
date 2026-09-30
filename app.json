@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SeñaFácil",
+    "name": "EnSeñas",
     "slug": "mecabite-front",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.programacion-herycam.mecabite-front",
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "SeñaFácil se conecta al servidor de tu red local para evaluar tus señas. Solo se envían puntos de la mano y del cuerpo, nunca video.",
+        "NSLocalNetworkUsageDescription": "EnSeñas se conecta al servidor de tu red local para evaluar tus señas. Solo se envían puntos de la mano y del cuerpo, nunca video.",
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
         }
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFF7F0",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -46,7 +46,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "SeñaFácil usa la cámara para verificar tus señas en tiempo real.",
+          "cameraPermission": "EnSeñas usa la cámara para verificar tus señas en tiempo real.",
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": false
         }

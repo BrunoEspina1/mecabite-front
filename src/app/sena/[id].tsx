@@ -6,16 +6,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
-import { ScreenHeader } from '@/components/screen-header';
+import { AppBar } from '@/components/app-bar';
 import { SignIcon } from '@/components/sign-icon';
 import { SignVideo } from '@/components/sign-video/sign-video';
 import { ThemedText } from '@/components/themed-text';
 import { TourOverlay } from '@/components/tour/tour-overlay';
 import { TourTarget } from '@/components/tour/tour-target';
-import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { getSena, getSenasByNivel } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 import { completeTourAction, useTourStep } from '@/onboarding/tour';
+import { useCompletedSigns } from '@/services/progress';
 
 /** 3. Video y descripción de la seña */
 export default function SenaScreen() {
@@ -24,6 +25,7 @@ export default function SenaScreen() {
   const sena = getSena(id);
   const scrollRef = useRef<ScrollView>(null);
   const tourStep = useTourStep()?.step.id;
+  const completed = useCompletedSigns().has(id);
 
   // The indications and the start button can be below the fold: bring them into view for the tour.
   useEffect(() => {
@@ -32,9 +34,9 @@ export default function SenaScreen() {
 
   if (!sena) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom', 'left', 'right']}>
+        <AppBar />
         <View style={styles.content}>
-          <ScreenHeader />
           <ThemedText>Seña no encontrada.</ThemedText>
         </View>
       </SafeAreaView>
@@ -45,24 +47,19 @@ export default function SenaScreen() {
   const posicion = delNivel.findIndex((s) => s.id === sena.id) + 1;
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom', 'left', 'right']}>
+      <AppBar
+        title={`Nivel ${sena.nivel} · ${sena.tipo} ${sena.etiqueta}`}
+        detail={completed ? 'Completado' : `${posicion}/${delNivel.length}`}
+      />
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          title={`Nivel ${sena.nivel} · ${sena.tipo} ${sena.etiqueta}`}
-          right={
-            <ThemedText type="small" themeColor="textSecondary">
-              {posicion}/{delNivel.length}
-            </ThemedText>
-          }
-        />
-
         <TourTarget id="sign-video">
           {sena.video ? (
             <SignVideo sena={{ ...sena, video: sena.video }} />
           ) : (
             // Placeholder for the signs that don't have a video yet.
             <View style={[styles.video, { backgroundColor: theme.primarySoft }]}>
-              <SignIcon sena={sena} size={140} />
+              <SignIcon item={sena} size={140} />
               <View style={[styles.play, { backgroundColor: theme.backgroundElement }]}>
                 <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={28} color={theme.primary} />
               </View>
@@ -128,10 +125,10 @@ export default function SenaScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,
+    paddingTop: Spacing.two,
     gap: Spacing.four,
   },
   video: {

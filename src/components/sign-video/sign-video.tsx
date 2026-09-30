@@ -37,7 +37,7 @@ export function SignVideo({ sena }: SignVideoProps) {
             onPress={() => setPlaying(true)}
             style={styles.cover}>
             {/* Without a connection the cover doesn't load and the drawing stays visible. */}
-            <SignIcon sena={sena} size={140} />
+            <SignIcon item={sena} size={140} />
             <Image
               source={`https://img.youtube.com/vi/${sena.video}/hqdefault.jpg`}
               style={StyleSheet.absoluteFill}

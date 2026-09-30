@@ -4,6 +4,7 @@ import { SignIcon } from '@/components/sign-icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Sena } from '@/data/senas';
+import { useCompletedSigns } from '@/services/progress';
 
 type SignTileProps = {
   sena: Sena;
@@ -13,13 +14,15 @@ type SignTileProps = {
 
 /** Circle with the sign's hand and its name below, no card behind. */
 export function SignTile({ sena, onPress, style }: SignTileProps) {
+  const completed = useCompletedSigns().has(sena.id);
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${sena.tipo} ${sena.etiqueta}`}
+      accessibilityLabel={`${sena.tipo} ${sena.etiqueta}${completed ? ', completada' : ''}`}
       onPress={onPress}
       style={({ pressed }) => [styles.tile, style, pressed && styles.pressed]}>
-      <SignIcon sena={sena} size={96} />
+      <SignIcon item={sena} size={96} completed={completed} />
       <ThemedText type="smallBold" style={styles.label} numberOfLines={2}>
         {sena.etiqueta}
       </ThemedText>

@@ -2,9 +2,9 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 
-const HEAD = 96;
-const SHOULDERS_WIDTH = 250;
-const SHOULDERS_HEIGHT = 130;
+const HEAD = 108;
+const SHOULDERS_WIDTH = 280;
+const SHOULDERS_HEIGHT = 146;
 
 /** Head-and-shoulders outline: the person must be visible from the torso up for the sign to be recognized. */
 export function TorsoGuide() {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     height: HEAD * 1.2,
     borderRadius: HEAD,
     borderWidth: 3,
-    marginBottom: 10,
+    marginBottom: 11,
   },
   shoulders: {
     width: SHOULDERS_WIDTH,

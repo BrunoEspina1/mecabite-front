@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppVersion } from '@/components/app-version';
 import { Button } from '@/components/button';
-import { ScreenHeader } from '@/components/screen-header';
+import { AppBar } from '@/components/app-bar';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api, ApiError } from '@/services/api/client';
 import { getDeviceId, restUrl, updateApiSettings, useApiSettings } from '@/services/api/settings';
@@ -41,10 +41,9 @@ export default function AjustesScreen() {
   const inputStyle = [styles.input, { backgroundColor: theme.backgroundElement, borderColor: theme.border, color: theme.text }];
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom', 'left', 'right']}>
+      <AppBar title="Ajustes de conexión" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <ScreenHeader title="Ajustes de conexión" />
-
         <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
           <View style={styles.row}>
             <View style={styles.flex}>
@@ -131,10 +130,10 @@ export default function AjustesScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: ScreenTopGap,
   },
   content: {
     padding: Spacing.four,
+    paddingTop: Spacing.two,
     gap: Spacing.four,
   },
   flex: {

@@ -5,18 +5,18 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppBar } from '@/components/app-bar';
 import { Button } from '@/components/button';
-import { CheckRow } from '@/components/check-row';
 import { Icon } from '@/components/icon';
-import { ScreenHeader } from '@/components/screen-header';
 import { TorsoGuide } from '@/components/practice/torso-guide';
 import { ThemedText } from '@/components/themed-text';
 import { TourOverlay } from '@/components/tour/tour-overlay';
 import { TourTarget } from '@/components/tour/tour-target';
-import { Radius, ScreenTopGap, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import type { Sena } from '@/data/senas';
 import { useTheme } from '@/hooks/use-theme';
 import { useTourStep } from '@/onboarding/tour';
+import { markSignCompleted } from '@/services/progress';
 
 // Mock: one check is marked every CHECK_INTERVAL_MS until the recognition backend exists.
 const CHECK_INTERVAL_MS = 1500;
@@ -36,8 +36,9 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
   const [doneCount, setDoneCount] = useState(0);
   const [attempt, setAttempt] = useState(0);
 
-  const checks = ['Configuración', 'Orientación', 'Localización', ...(sena?.movimiento ? ['Movimiento'] : [])];
-  const completed = doneCount >= checks.length;
+  // One simulated check per thing a real session reviews: signs with movement take one more.
+  const checks = sena?.movimiento ? 4 : 3;
+  const completed = doneCount >= checks;
   const granted = permission?.granted ?? false;
   const tourStep = useTourStep()?.step.id;
 
@@ -55,20 +56,35 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
     return () => clearTimeout(timer);
   }, [granted, completed, doneCount, attempt]);
 
+  useEffect(() => {
+    if (completed && sena) markSignCompleted(sena.id);
+  }, [completed, sena]);
+
   const restart = () => {
     setDoneCount(0);
     setSeconds(0);
     setAttempt((a) => a + 1);
   };
 
-  const header = (
-    <ScreenHeader
+  // No brand here: the right of the bar is for the camera switch.
+  const appBar = (withCamera: boolean) => (
+    <AppBar
       title="Modo práctica"
       color={theme.cameraText}
       right={
-        <ThemedText type="smallBold" style={{ color: theme.cameraText }}>
-          {formatTime(seconds)}
-        </ThemedText>
+        withCamera ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cambiar cámara"
+            onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))}
+            style={[styles.flip, { backgroundColor: theme.cameraOverlay }]}>
+            <Icon
+              name={{ ios: 'arrow.triangle.2.circlepath.camera', android: 'flip_camera_ios', web: 'flip_camera_ios' }}
+              size={22}
+              color={theme.cameraText}
+            />
+          </Pressable>
+        ) : null
       }
     />
   );
@@ -83,10 +99,10 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
 
   if (!granted) {
     return (
-      <SafeAreaView style={[styles.flex, styles.padded, { backgroundColor: theme.cameraSurface }]}>
+      <SafeAreaView style={[styles.flex, { backgroundColor: theme.cameraSurface }]} edges={['bottom', 'left', 'right']}>
         <StatusBar style="light" />
-        {header}
-        <View style={styles.permission}>
+        {appBar(false)}
+        <View style={[styles.permission, styles.padded]}>
           <Icon name={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} size={56} color={theme.primary} />
           <ThemedText type="smallBold" style={[styles.centerText, { color: theme.cameraText }]}>
             Necesitamos acceso a tu cámara para verificar tu seña.
@@ -108,9 +124,8 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
       <StatusBar style="light" />
       <CameraView style={StyleSheet.absoluteFill} facing={facing} mirror={facing === 'front'} />
 
-      <SafeAreaView style={[styles.flex, styles.padded]} pointerEvents="box-none">
-        {header}
-
+      {appBar(true)}
+      <SafeAreaView style={[styles.flex, styles.padded]} edges={['bottom', 'left', 'right']} pointerEvents="box-none">
         {/* Framing corners */}
         <TourTarget id="practice-framing" style={styles.flex}>
           <View style={styles.frame} pointerEvents="none">
@@ -126,18 +141,6 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
           </View>
         </TourTarget>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Cambiar cámara"
-          onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))}
-          style={[styles.flip, { backgroundColor: theme.cameraOverlay }]}>
-          <Icon
-            name={{ ios: 'arrow.triangle.2.circlepath.camera', android: 'flip_camera_ios', web: 'flip_camera_ios' }}
-            size={24}
-            color={theme.cameraText}
-          />
-        </Pressable>
-
         <View style={styles.bottom}>
           <TourTarget id="practice-status">
             <View style={[styles.status, { backgroundColor: theme.backgroundElement }]}>
@@ -149,14 +152,6 @@ export function PracticeSimulated({ sena }: { sena: Sena | undefined }) {
                   ? `Completaste ${sena ? `${sena.tipo.toLowerCase()} ${sena.etiqueta}` : 'la seña'} en ${formatTime(seconds)}`
                   : 'Para reconocer la seña, la cámara debe verte del torso para arriba.'}
               </ThemedText>
-            </View>
-          </TourTarget>
-
-          <TourTarget id="practice-checks">
-            <View style={[styles.checks, { backgroundColor: theme.cameraOverlay }]}>
-              {checks.map((label, i) => (
-                <CheckRow key={label} label={label} done={i < doneCount} color={theme.cameraText} />
-              ))}
             </View>
           </TourTarget>
 
@@ -180,7 +175,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   padded: {
-    paddingTop: ScreenTopGap,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.three,
   },
@@ -221,12 +215,9 @@ const styles = StyleSheet.create({
   bl: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: Radius.md },
   br: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: Radius.md },
   flip: {
-    position: 'absolute',
-    top: 72,
-    right: Spacing.four,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -240,11 +231,6 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontSize: 17,
-  },
-  checks: {
-    borderRadius: Radius.md,
-    padding: Spacing.three,
-    gap: Spacing.three,
   },
   actions: {
     flexDirection: 'row',

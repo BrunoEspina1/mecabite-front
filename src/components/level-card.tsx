@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Icon } from '@/components/icon';
+import { SignIcon } from '@/components/sign-icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Nivel } from '@/data/senas';
@@ -33,9 +33,7 @@ export function LevelCard({ nivel, onPress }: LevelCardProps) {
           {nivel.subtitulo}
         </ThemedText>
       </View>
-      <View style={[styles.iconWrap, { backgroundColor: theme.primarySoft }]}>
-        <Icon name={nivel.icon} size={40} color={theme.primary} />
-      </View>
+      <SignIcon item={nivel} size={72} />
     </Pressable>
   );
 }
@@ -59,12 +57,5 @@ const styles = StyleSheet.create({
   preview: {
     marginTop: Spacing.two,
     letterSpacing: 2,
-  },
-  iconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
