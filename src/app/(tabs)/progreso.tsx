@@ -88,14 +88,18 @@ export default function ProgresoScreen() {
           );
         })}
 
-        {/* The total closes the list, right under the levels. */}
-        <View style={styles.summary}>
-          <View style={styles.row}>
-            <ThemedText type="smallBold">Señas aprobadas</ThemedText>
+        {/* The total closes the list. It reads as a figure, not as one more level to tap. */}
+        <View
+          accessible
+          accessibilityLabel={`${total} de ${SENAS.length} señas aprobadas en total`}
+          style={[styles.summary, { backgroundColor: theme.primaryTint }]}
+        >
+          <ThemedText type="small" themeColor="textSecondary">
             <ThemedText type="smallBold" style={{ color: theme.primary }}>
               {total} de {SENAS.length}
-            </ThemedText>
-          </View>
+            </ThemedText>{" "}
+            señas aprobadas
+          </ThemedText>
           {bar(total / SENAS.length)}
         </View>
 
@@ -127,11 +131,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingBottom: 20,
   },
-  // No border or background: it is the total of the list, lined up with the cards' contents.
+  // Tinted, borderless and centred, with no chevron, and shorter than the level cards above.
   summary: {
-    marginTop: 20,
-    paddingHorizontal: Spacing.three,
-    gap: Spacing.three,
+    marginTop: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    gap: Spacing.two,
   },
   card: {
     padding: Spacing.three,
@@ -146,6 +152,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   track: {
+    alignSelf: "stretch",
     height: 8,
     borderRadius: Radius.pill,
     overflow: "hidden",

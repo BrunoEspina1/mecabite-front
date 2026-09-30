@@ -139,6 +139,10 @@ let state = initial();
 const listeners = new Set<() => void>();
 
 function set(next: TourState) {
+  // A position measured on an earlier visit may be stale (the screen scrolled, the list changed):
+  // the step's element is measured again, and the overlay waits for it.
+  const target = next.index === null ? undefined : TOUR_STEPS[next.index].target;
+  if (target && rects.delete(target)) rectListeners.forEach((listener) => listener());
   state = next;
   listeners.forEach((listener) => listener());
 }

@@ -26,6 +26,8 @@ import { markSignCompleted } from '@/services/progress';
 import type { FeedbackCode } from '@/services/api/types';
 
 const REQUIRED_EXECUTIONS = 3;
+/** The detected points are still tracked and evaluated; this only decides whether they are drawn over the camera. */
+const SHOW_LANDMARKS = false;
 
 /** Visual support per feedback_code (never parse `message`). */
 const WRONG_ICON: SymbolName = { ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' };
@@ -296,6 +298,9 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
                 ? FRAMING_SUBTITLE[framing]
                 : null));
   const consecutive = feedback?.consecutive_correct ?? 0;
+  // The sign's name follows the same verdict as the status card: green when it is right, red when it is wrong.
+  const right = approved || (!overridden && code === 'correct');
+  const signColor = right ? theme.success : wrong ? theme.danger : theme.cameraText;
 
   return (
     <View
@@ -310,9 +315,18 @@ function PracticeLiveSession({ sena, onRestart }: { sena: Sena | undefined; onRe
         onLandmarks={handleLandmarks}
         onError={({ nativeEvent }) => setCameraError(nativeEvent.message)}
       />
-      <LandmarksOverlay frame={frame} width={size.width} height={size.height} />
+      {SHOW_LANDMARKS ? <LandmarksOverlay frame={frame} width={size.width} height={size.height} /> : null}
 
       {appBar(true)}
+      {sena ? (
+        <View style={styles.sign} pointerEvents="none">
+          <View style={[styles.signChip, { backgroundColor: theme.cameraOverlay }]}>
+            <ThemedText type="subtitle" style={{ color: signColor }} accessibilityLabel={`${sena.tipo} ${sena.etiqueta}`}>
+              {sena.etiqueta}
+            </ThemedText>
+          </View>
+        </View>
+      ) : null}
       <SafeAreaView style={[styles.flex, styles.padded]} edges={['bottom', 'left', 'right']} pointerEvents="box-none">
         <TourTarget id="practice-framing" style={styles.flex}>
           <View
@@ -433,6 +447,17 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  sign: {
+    alignItems: 'center',
+    paddingTop: Spacing.three,
+  },
+  signChip: {
+    minWidth: 56,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.md,
   },
   spacer: {
     flex: 1,

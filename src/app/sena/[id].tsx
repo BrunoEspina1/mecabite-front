@@ -28,8 +28,9 @@ export default function SenaScreen() {
   const completed = useCompletedSigns().has(id);
 
   // The indications and the start button can be below the fold: bring them into view for the tour.
+  // Without animation, so the highlight can glide straight to where they end up.
   useEffect(() => {
-    if (tourStep === 'indications' || tourStep === 'start-practice') scrollRef.current?.scrollToEnd({ animated: true });
+    if (tourStep === 'indications' || tourStep === 'start-practice') scrollRef.current?.scrollToEnd({ animated: false });
   }, [tourStep]);
 
   if (!sena) {

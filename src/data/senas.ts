@@ -34,7 +34,7 @@ export type Sena = {
   /**
    * YouTube id of the sign's video in the INDISCAPACIDAD CDMX glossary of LSM, played from YouTube.
    * Letters: https://lsm.indiscapacidad.cdmx.gob.mx/ejes/educacion/
-   * Words: the `saludos`, `expresiones-cotidianas` and `familia` sections of the same site.
+   * Words: the `saludos`, `expresiones-cotidianas`, `familia` and `verbos` sections of the same site.
    */
   video?: string;
   /** Made with both hands: both are evaluated and the person's chosen hand doesn't apply. */
@@ -266,6 +266,7 @@ export const SENAS: Sena[] = [
     movimiento: 'Ambas manos suben.',
     icon: HAND_SIGN,
     image: require('../../assets/images/signs/hand-two.png'),
+    video: 'bOoOX_IsWpU',
   },
   {
     id: 'mama',

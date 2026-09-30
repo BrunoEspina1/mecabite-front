@@ -22,9 +22,14 @@ export function TourTarget({ id, children, style }: TourTargetProps) {
 
   useEffect(() => {
     if (!active) return;
-    // Measure again after screen transitions and scrolls settle.
-    const timers = [50, 400, 800].map((delay) => setTimeout(measure, delay));
-    return () => timers.forEach(clearTimeout);
+    // Right away, so the step shows without waiting; then again in case a transition or a scroll moved it.
+    measure();
+    const frame = requestAnimationFrame(measure);
+    const timers = [100, 300, 600].map((delay) => setTimeout(measure, delay));
+    return () => {
+      cancelAnimationFrame(frame);
+      timers.forEach(clearTimeout);
+    };
   }, [active, measure]);
 
   return (

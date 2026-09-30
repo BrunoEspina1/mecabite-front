@@ -46,13 +46,24 @@ export function AppBar({ title, showBack = true, right, color }: AppBarProps) {
   );
 }
 
-/** Wordmark and symbol, side by side. */
+/**
+ * Wordmark and symbol, side by side. Tapping it takes the app back to the welcome screen, which plays the
+ * intro again: a way to restart a demo without relaunching. Nothing shows that it can be tapped.
+ */
 function Brand() {
   return (
-    <View style={styles.brand} accessible accessibilityRole="image" accessibilityLabel="EnSeñas">
-      <Image source={require('../../assets/images/brand/ensenas-wordmark.png')} style={styles.wordmark} contentFit="contain" />
-      <Image source={require('../../assets/images/brand/ensenas-icon.png')} style={styles.symbol} contentFit="contain" />
-    </View>
+    <Pressable
+      accessible={false}
+      hitSlop={10}
+      onPress={() => {
+        if (router.canDismiss()) router.dismissAll();
+        router.replace('/');
+      }}>
+      <View style={styles.brand} accessible accessibilityRole="image" accessibilityLabel="EnSeñas">
+        <Image source={require('../../assets/images/brand/ensenas-wordmark.png')} style={styles.wordmark} contentFit="contain" />
+        <Image source={require('../../assets/images/brand/ensenas-icon.png')} style={styles.symbol} contentFit="contain" />
+      </View>
+    </Pressable>
   );
 }
 
